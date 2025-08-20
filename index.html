@@ -188,19 +188,27 @@ input[type="file"]:hover::before {
       }
     }
 
-    function handleCredentialResponse(response) {
-      const payload = parseJwt(response.credential);
-      const email = payload.email || "";
-      if (allowedEmails.includes(email)) {
-        document.querySelector('[name="email"]').value = email;
-        document.getElementById("whoami").innerHTML = `Fiber line marking`;
-        document.getElementById("deniedMsg").classList.add("hidden");
-        document.getElementById("signinCard").classList.add("hidden");
-        document.getElementById("formCard").classList.remove("hidden");
-      } else {
-        document.getElementById("deniedMsg").classList.remove("hidden");
-      }
-    }
+function handleCredentialResponse(response) {
+  const payload = parseJwt(response.credential);
+  const email = payload.email || "";
+
+  if (allowedEmails.includes(email)) {
+    // save session for 1 hr
+    localStorage.setItem("userSession", JSON.stringify({
+      email: email,
+      timestamp: Date.now()
+    }));
+
+    document.querySelector('[name="email"]').value = email;
+    document.getElementById("whoami").innerHTML = `Fiber line marking`;
+    document.getElementById("deniedMsg").classList.add("hidden");
+    document.getElementById("signinCard").classList.add("hidden");
+    document.getElementById("formCard").classList.remove("hidden");
+  } else {
+    document.getElementById("deniedMsg").classList.remove("hidden");
+  }
+}
+
 
     function autoDetectLocation() {
       if (!navigator.geolocation) {
