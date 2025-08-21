@@ -341,7 +341,7 @@ function handleCredentialResponse(response) {
 
       let remaining = 60;
       countdownEl.textContent = `(${remaining}s)`;
-      showToast("🕒 Please wait 60 seconds before submitting.", "info");
+      showToast("🕒 Please wait 600 seconds before submitting.", "info");
 
       const timer = setInterval(() => {
         remaining--;
@@ -362,7 +362,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const formCard = document.getElementById("formCard");
   const emailInput = document.querySelector("input[name='email']");
 
-  const ONE_HOUR = 60 * 60 * 1000; // 1 hour in milliseconds
+  const ONE_HOUR = 600 * 60 * 1000; // 1 hour in milliseconds
 
   // Check saved email in localStorage
   const savedSession = JSON.parse(localStorage.getItem("userSession"));
