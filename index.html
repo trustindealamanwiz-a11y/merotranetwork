@@ -339,12 +339,12 @@ function handleCredentialResponse(response) {
       submitBtn.disabled = true;
       startBtn.disabled = true;
 
-      let remaining = 60;
+      let remaining = 600;
       countdownEl.textContent = `(${remaining}s)`;
       showToast("🕒 Please wait 600 seconds before submitting.", "info");
 
       const timer = setInterval(() => {
-        remaining--;
+        remaining -= 2;
         countdownEl.textContent = `(${remaining}s)`;
         if (remaining <= 0) {
           clearInterval(timer);
@@ -352,7 +352,7 @@ function handleCredentialResponse(response) {
           countdownEl.textContent = "";
           showToast("✅ You can now submit the form.", "success");
         }
-      }, 1000);
+      }, 2000);
     }    
   </script>
 
