@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <link rel="stylesheet" href="style.css">
-<style>/* File input custom style with camera icon */
+<style>
 input[type="file"] {
   display: block;
   padding: 8px;
@@ -40,7 +40,6 @@ input[type="file"]:hover::before {
   background: #0056b3;
 }
 </style>
- 
 </head>
 <body>
   <header>
@@ -61,18 +60,16 @@ input[type="file"]:hover::before {
   <!-- Form card -->
   <div id="formCard" class="card hidden">
     <div class="row muted" id="whoami"></div>
-   
     <form id="dataForm" class="form">
       <input type="email" name="email" class="hidden" readonly required />
       <input type="hidden" name="startTime" />
-<div class="row">
-  <select name="windowoption" required>
-    <option value="">Select Window</option>
-    <option>Merotra</option>
-    <option>Sunny</option>
-   
-  </select>
-</div>
+      <div class="row">
+        <select name="windowoption" required>
+          <option value="">Select Window</option>
+          <option>Merotra</option>
+          <option>Sunny</option>
+        </select>
+      </div>
       <div class="form-step">Step 1 - Click on start Tagging</div>
       <div id="locationRow" class="row hidden">
         <input type="text" name="locationLink" placeholder="Enter Google Maps Link" />
@@ -100,20 +97,20 @@ input[type="file"]:hover::before {
       <div class="row">
         <input type="text" name="jcname" required placeholder="Enter JC Name" />
       </div>
-<div class="row">
-  <select name="wire" required>
-    <option value="">Select Wire</option>
-    <option>1 Core</option>
-    <option>2 Core</option>
-    <option>4 Core</option>
-    <option>6 Core</option>
-    <option>12 Core</option>
-    <option>96 Core</option>
-  </select>
-</div>
-<div class="row">
-  <input type="number" name="vacantcores" required placeholder="Enter Vacant Cores" />
-</div>
+      <div class="row">
+        <select name="wire" required>
+          <option value="">Select Wire</option>
+          <option>1 Core</option>
+          <option>2 Core</option>
+          <option>4 Core</option>
+          <option>6 Core</option>
+          <option>12 Core</option>
+          <option>96 Core</option>
+        </select>
+      </div>
+      <div class="row">
+        <input type="number" name="vacantcores" required placeholder="Enter Vacant Cores" />
+      </div>
       <div class="row">
         <select name="wirecolor">
           <option value="">Select Wire Color</option>
@@ -146,7 +143,7 @@ input[type="file"]:hover::before {
     const scriptURL = "https://script.google.com/macros/s/AKfycbxRnBmBu_ozeU05Wv7cesr5AsWCIILv8FEwaeUnGyDyswJ86hyQWPX259_vwAJZ-h_S/exec";
     const clientID = "599836800018-6df1f03d2l70q5aoncd0s3b99j72je38.apps.googleusercontent.com";
     let timerInterval;
-    const COUNTDOWN_DURATION = 600; // seconds
+    const COUNTDOWN_DURATION = 600; // 10 minutes in seconds
     const fieldsToSave = ['windowoption', 'locationLink', 'splitter', 'jcname', 'wire', 'vacantcores', 'wirecolor', 'linename', 'drumno', 'remark'];
 
     window.onload = () => {
@@ -162,7 +159,17 @@ input[type="file"]:hover::before {
       }
       document.getElementById("dataForm").addEventListener("submit", onSubmit);
       autoDetectLocation();
+      // Load form data and start countdown on page load
+      loadFormData();
+      timerInterval = setInterval(updateCountdown, 1000);
+      // Add input event listeners for all form fields
+      fieldsToSave.forEach(field => {
+        const element = document.querySelector(`[name="${field}"]`);
+        element.addEventListener('input', saveFormData); // Changed to 'input' for real-time saving
+        element.addEventListener('change', saveFormData); // Keep 'change' for select and textarea
+      });
     };
+
     function parseJwt(token) {
       try {
         const base64Url = token.split('.')[1];
@@ -175,33 +182,32 @@ input[type="file"]:hover::before {
         return {};
       }
     }
-function handleCredentialResponse(response) {
-  const payload = parseJwt(response.credential);
-  const email = payload.email || "";
-  if (allowedEmails.includes(email)) {
-    // save session for 1 hr
-    localStorage.setItem("userSession", JSON.stringify({
-      email: email,
-      timestamp: Date.now()
-    }));
-    document.querySelector('[name="email"]').value = email;
-    document.getElementById("whoami").innerHTML = `Fiber line marking`;
-    document.getElementById("deniedMsg").classList.add("hidden");
-    document.getElementById("signinCard").classList.add("hidden");
-    document.getElementById("formCard").classList.remove("hidden");
-    loadFormData();
-    fieldsToSave.forEach(field => {
-      document.querySelector(`[name="${field}"]`).addEventListener('change', saveFormData);
-    });
-    timerInterval = setInterval(updateCountdown, 1000);
-    updateCountdown(); // initial call
-  } else {
-    document.getElementById("deniedMsg").classList.remove("hidden");
-  }
-}
+
+    function handleCredentialResponse(response) {
+      const payload = parseJwt(response.credential);
+      const email = payload.email || "";
+      if (allowedEmails.includes(email)) {
+        localStorage.setItem("userSession", JSON.stringify({
+          email: email,
+          timestamp: Date.now()
+        }));
+        document.querySelector('[name="email"]').value = email;
+        document.getElementById("whoami").innerHTML = `Fiber line marking`;
+        document.getElementById("deniedMsg").classList.add("hidden");
+        document.getElementById("signinCard").classList.add("hidden");
+        document.getElementById("formCard").classList.remove("hidden");
+        // Load form data and start countdown after login
+        loadFormData();
+        updateCountdown();
+      } else {
+        document.getElementById("deniedMsg").classList.remove("hidden");
+      }
+    }
+
     function autoDetectLocation() {
       if (!navigator.geolocation) {
         document.getElementById("locationRow").classList.remove("hidden");
+        saveFormData(); // Save after setting location
         return;
       }
       navigator.geolocation.getCurrentPosition(
@@ -210,11 +216,16 @@ function handleCredentialResponse(response) {
           const lng = pos.coords.longitude;
           document.querySelector("[name=locationLink]").value =
             `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+          saveFormData(); // Save after setting location
         },
-        () => document.getElementById("locationRow").classList.remove("hidden"),
+        () => {
+          document.getElementById("locationRow").classList.remove("hidden");
+          saveFormData();
+        },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     }
+
     function compressImageToDataURL(file, maxKB = 200) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -242,6 +253,7 @@ function handleCredentialResponse(response) {
         reader.readAsDataURL(file);
       });
     }
+
     async function onSubmit(e) {
       e.preventDefault();
       const form = e.target;
@@ -275,8 +287,8 @@ function handleCredentialResponse(response) {
         linename: form.linename.value,
         drumno: form.drumno.value,
         remark: form.remark.value,
-        vacantcores: form.vacantcores.value, // ✅ new
-        windowoption: form.windowoption.value, // ✅ new
+        vacantcores: form.vacantcores.value,
+        windowoption: form.windowoption.value,
         startTime: form.startTime.value
       };
       fetch(scriptURL, {
@@ -300,6 +312,7 @@ function handleCredentialResponse(response) {
         showToast("❌ Network error: " + err, "error");
       });
     }
+
     function showToast(text, type) {
       const toast = document.createElement("div");
       toast.className = `toast ${type}`;
@@ -310,6 +323,7 @@ function handleCredentialResponse(response) {
         setTimeout(() => toast.remove(), 500);
       }, 3000);
     }
+
     function startTagging() {
       const submitBtn = document.getElementById('submitBtn');
       const startTimeField = document.querySelector('[name="startTime"]');
@@ -319,9 +333,11 @@ function handleCredentialResponse(response) {
       localStorage.setItem('startTime', now);
       startTimeField.value = new Date(now).toISOString();
       startBtn.disabled = true;
-      updateCountdown();
+      saveFormData(); // Save form state
       showToast("🕒 Please wait 600 seconds before submitting.", "info");
+      updateCountdown();
     }
+
     function updateCountdown() {
       const start = parseInt(localStorage.getItem('startTime') || 0);
       const submitBtn = document.getElementById('submitBtn');
@@ -334,76 +350,80 @@ function handleCredentialResponse(response) {
       countdownEl.textContent = remaining > 0 ? `(${remaining}s)` : '';
       submitBtn.disabled = remaining > 0;
       startBtn.disabled = true;
-      if (remaining <= 0) {
+      if (remaining <= 0 && countdownEl.textContent !== '') {
         showToast("✅ You can now submit the form.", "success");
+        countdownEl.textContent = '';
       }
     }
+
     function loadFormData() {
-      const data = JSON.parse(localStorage.getItem('formData')) || {};
-      const form = document.getElementById('dataForm');
-      fieldsToSave.forEach(field => {
-        if (data[field]) {
-          form[field].value = data[field];
+      try {
+        const data = JSON.parse(localStorage.getItem('formData')) || {};
+        console.log('Loading form data:', data); // Debug log
+        const form = document.getElementById('dataForm');
+        fieldsToSave.forEach(field => {
+          if (data[field]) {
+            form[field].value = data[field];
+          }
+        });
+        const start = localStorage.getItem('startTime');
+        if (start) {
+          form.startTime.value = new Date(parseInt(start)).toISOString();
+          document.getElementById('startTaggingBtn').disabled = true;
         }
-      });
-      const start = localStorage.getItem('startTime');
-      if (start) {
-        form.startTime.value = new Date(parseInt(start)).toISOString();
-        document.getElementById('startTaggingBtn').disabled = true;
+      } catch (err) {
+        console.error('Error loading form data:', err);
       }
     }
+
     function saveFormData() {
-      const form = document.getElementById('dataForm');
-      const data = {};
-      fieldsToSave.forEach(field => {
-        data[field] = form[field].value;
-      });
-      localStorage.setItem('formData', JSON.stringify(data));
+      try {
+        const form = document.getElementById('dataForm');
+        const data = {};
+        fieldsToSave.forEach(field => {
+          data[field] = form[field].value;
+        });
+        localStorage.setItem('formData', JSON.stringify(data));
+        console.log('Saved form data:', data); // Debug log
+      } catch (err) {
+        console.error('Error saving form data:', err);
+      }
     }
+
     function clearStoredData() {
-      localStorage.removeItem('formData');
-      localStorage.removeItem('startTime');
-      clearInterval(timerInterval);
-      document.getElementById('startTaggingBtn').disabled = false;
+      try {
+        localStorage.removeItem('formData');
+        localStorage.removeItem('startTime');
+        clearInterval(timerInterval);
+        document.getElementById('startTaggingBtn').disabled = false;
+        console.log('Cleared stored data');
+      } catch (err) {
+        console.error('Error clearing stored data:', err);
+      }
     }
   </script>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const loginCard = document.getElementById("signinCard");
-  const formCard = document.getElementById("formCard");
-  const emailInput = document.querySelector("input[name='email']");
-  const ONE_HOUR = 600 * 60 * 1000; // 1 hour in milliseconds
-  // Check saved email in localStorage
-  const savedSession = JSON.parse(localStorage.getItem("userSession"));
-  if (savedSession) {
-    const now = Date.now();
-    if (now - savedSession.timestamp < ONE_HOUR) {
-      // Session is still valid
-      emailInput.value = savedSession.email; // auto-fill email
-      loginCard.classList.add("hidden");
-      formCard.classList.remove("hidden");
-      console.log("Auto-login with saved email:", savedSession.email);
-    } else {
-      // Session expired
-      localStorage.removeItem("userSession");
-    }
-  }
-  // When login form is submitted
-  document.getElementById("signinForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const email = emailInput.value;
-    // Save email + timestamp
-    localStorage.setItem("userSession", JSON.stringify({
-      email: email,
-      timestamp: Date.now()
-    }));
-    // Show form card directly
-    loginCard.classList.add("hidden");
-    formCard.classList.remove("hidden");
-    console.log("Login successful, session saved for 1 hr");
-  });
-});
-</script>
- 
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const loginCard = document.getElementById("signinCard");
+      const formCard = document.getElementById("formCard");
+      const emailInput = document.querySelector("input[name='email']");
+      const ONE_HOUR = 3600 * 1000; // 1 hour in milliseconds
+      // Check saved email in localStorage
+      const savedSession = JSON.parse(localStorage.getItem("userSession"));
+      if (savedSession) {
+        const now = Date.now();
+        if (now - savedSession.timestamp < ONE_HOUR) {
+          emailInput.value = savedSession.email;
+          loginCard.classList.add("hidden");
+          formCard.classList.remove("hidden");
+          console.log("Auto-login with saved email:", savedSession.email);
+          loadFormData();
+          timerInterval = setInterval(updateCountdown, 1000);
+        } else {
+          localStorage.removeItem("userSession");
+        }
+      }
+    });
+  </script>
 </body>
 </html>
