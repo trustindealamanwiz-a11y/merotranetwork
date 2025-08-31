@@ -89,6 +89,14 @@ input[type="file"] {
   cursor: pointer;
   transition: 0.3s ease;
 }
+
+input[type="file"].selected {
+  border-color: #16a34a;      /* green border */
+  background-color: #e6ffed;  /* light green background */
+}
+
+
+  
 input[type="file"]:hover {
   border-color: #007bff;
   background-color: #eef6ff;
@@ -206,7 +214,7 @@ input[type="file"]:hover::before {
         <button type="submit" id="submitBtn" class="btn success" disabled>
           Tagging done <span id="countdown"></span>
         </button>
-        <button type="button" id="resetBtn" class="btn danger" onclick="resetTag()">Reset this tag</button>
+        <button type="button" id="resetBtn" class="btn danger" onclick="resetTag()">Reset this tag<br></button>
         <br>
         <span id="submitStatus" class="muted small-text"></span>
       </div>
@@ -535,6 +543,23 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.removeItem("userSession");
     }
   }
+
+// Function to mark selected image input
+function handleFileSelectForHighlight(e) {
+  const input = e.target;
+  if (input.files && input.files.length > 0) {
+    input.classList.add("selected");  // green highlight
+  } else {
+    input.classList.remove("selected");
+  }
+}
+
+// Apply listeners on photo inputs
+document.querySelector('[name="photo1"]').addEventListener('change', handleFileSelectForHighlight);
+document.querySelector('[name="photo2"]').addEventListener('change', handleFileSelectForHighlight);
+
+
+  
 });
 </script>
 </body>
