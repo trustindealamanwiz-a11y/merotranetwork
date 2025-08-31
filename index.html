@@ -145,7 +145,6 @@ input[type="file"]:hover::before {
     const allowedEmails = ["shahzebahmad2024@gmail.com", "trustindeal.amanwiz@gmail.com", "mrityunjaykumar9151@gmail.com", "ganeshnigam597@gmail.com"];
     const scriptURL = "https://script.google.com/macros/s/AKfycbxRnBmBu_ozeU05Wv7cesr5AsWCIILv8FEwaeUnGyDyswJ86hyQWPX259_vwAJZ-h_S/exec";
     const clientID = "599836800018-6df1f03d2l70q5aoncd0s3b99j72je38.apps.googleusercontent.com";
-    let userEmail = "";
     let timerInterval;
     const COUNTDOWN_DURATION = 600; // seconds
     const fieldsToSave = ['windowoption', 'locationLink', 'splitter', 'jcname', 'wire', 'vacantcores', 'wirecolor', 'linename', 'drumno', 'remark'];
@@ -190,7 +189,6 @@ function handleCredentialResponse(response) {
     document.getElementById("deniedMsg").classList.add("hidden");
     document.getElementById("signinCard").classList.add("hidden");
     document.getElementById("formCard").classList.remove("hidden");
-    userEmail = email;
     loadFormData();
     fieldsToSave.forEach(field => {
       document.querySelector(`[name="${field}"]`).addEventListener('change', saveFormData);
@@ -318,14 +316,14 @@ function handleCredentialResponse(response) {
       const countdownEl = document.getElementById('countdown');
       const startBtn = document.getElementById('startTaggingBtn');
       const now = Date.now();
-      localStorage.setItem(`${userEmail}_startTime`, now);
+      localStorage.setItem('startTime', now);
       startTimeField.value = new Date(now).toISOString();
       startBtn.disabled = true;
       updateCountdown();
       showToast("🕒 Please wait 600 seconds before submitting.", "info");
     }
     function updateCountdown() {
-      const start = parseInt(localStorage.getItem(`${userEmail}_startTime`) || 0);
+      const start = parseInt(localStorage.getItem('startTime') || 0);
       const submitBtn = document.getElementById('submitBtn');
       const countdownEl = document.getElementById('countdown');
       const startBtn = document.getElementById('startTaggingBtn');
@@ -341,14 +339,14 @@ function handleCredentialResponse(response) {
       }
     }
     function loadFormData() {
-      const data = JSON.parse(localStorage.getItem(`${userEmail}_formData`)) || {};
+      const data = JSON.parse(localStorage.getItem('formData')) || {};
       const form = document.getElementById('dataForm');
       fieldsToSave.forEach(field => {
         if (data[field]) {
           form[field].value = data[field];
         }
       });
-      const start = localStorage.getItem(`${userEmail}_startTime`);
+      const start = localStorage.getItem('startTime');
       if (start) {
         form.startTime.value = new Date(parseInt(start)).toISOString();
         document.getElementById('startTaggingBtn').disabled = true;
@@ -360,11 +358,11 @@ function handleCredentialResponse(response) {
       fieldsToSave.forEach(field => {
         data[field] = form[field].value;
       });
-      localStorage.setItem(`${userEmail}_formData`, JSON.stringify(data));
+      localStorage.setItem('formData', JSON.stringify(data));
     }
     function clearStoredData() {
-      localStorage.removeItem(`${userEmail}_formData`);
-      localStorage.removeItem(`${userEmail}_startTime`);
+      localStorage.removeItem('formData');
+      localStorage.removeItem('startTime');
       clearInterval(timerInterval);
       document.getElementById('startTaggingBtn').disabled = false;
     }
