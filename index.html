@@ -39,8 +39,13 @@ input[type="file"]::before {
 input[type="file"]:hover::before {
   background: #0056b3;
 }
+.preview-img {
+  max-width: 100px;
+  max-height: 100px;
+  margin-top: 10px;
+  display: none;
+}
 </style>
- 
 </head>
 <body>
   <header>
@@ -65,14 +70,13 @@ input[type="file"]:hover::before {
     <form id="dataForm" class="form">
       <input type="email" name="email" class="hidden" readonly required />
       <input type="hidden" name="startTime" />
-<div class="row">
-  <select name="windowoption" required>
-    <option value="">Select Window</option>
-    <option>Merotra</option>
-    <option>Sunny</option>
-   
-  </select>
-</div>
+      <div class="row">
+        <select name="windowoption" required>
+          <option value="">Select Window</option>
+          <option>Merotra</option>
+          <option>Sunny</option>
+        </select>
+      </div>
       <div class="form-step">Step 1 - Click on start Tagging</div>
       <div id="locationRow" class="row hidden">
         <input type="text" name="locationLink" placeholder="Enter Google Maps Link" />
@@ -91,29 +95,31 @@ input[type="file"]:hover::before {
       <div class="form-step">Step 3 - Attach JC pick</div>
       <div class="row">
         <input type="file" name="photo1" accept="image/*" capture="environment" required />
+        <img id="photo1Preview" class="preview-img" alt="JC Photo Preview" />
       </div>
       <div class="form-step">Step 4 - Attach location pick</div>
       <div class="row">
         <input type="file" name="photo2" accept="image/*" capture="environment" required />
+        <img id="photo2Preview" class="preview-img" alt="Location Photo Preview" />
       </div>
       <div class="form-step">Step 5 - Fill line details</div>
       <div class="row">
         <input type="text" name="jcname" required placeholder="Enter JC Name" />
       </div>
-<div class="row">
-  <select name="wire" required>
-    <option value="">Select Wire</option>
-    <option>1 Core</option>
-    <option>2 Core</option>
-    <option>4 Core</option>
-    <option>6 Core</option>
-    <option>12 Core</option>
-    <option>96 Core</option>
-  </select>
-</div>
-<div class="row">
-  <input type="number" name="vacantcores" required placeholder="Enter Vacant Cores" />
-</div>
+      <div class="row">
+        <select name="wire" required>
+          <option value="">Select Wire</option>
+          <option>1 Core</option>
+          <option>2 Core</option>
+          <option>4 Core</option>
+          <option>6 Core</option>
+          <option>12 Core</option>
+          <option>96 Core</option>
+        </select>
+      </div>
+      <div class="row">
+        <input type="number" name="vacantcores" required placeholder="Enter Vacant Cores" />
+      </div>
       <div class="row">
         <select name="wirecolor">
           <option value="">Select Wire Color</option>
@@ -148,6 +154,7 @@ input[type="file"]:hover::before {
     let timerInterval;
     const COUNTDOWN_DURATION = 600; // seconds
     const fieldsToSave = ['windowoption', 'locationLink', 'splitter', 'jcname', 'wire', 'vacantcores', 'wirecolor', 'linename', 'drumno', 'remark'];
+    let storedPhotos = { photo1: null, photo2: null };
 
     window.onload = () => {
       if (window.google && google.accounts && google.accounts.id) {
@@ -163,6 +170,7 @@ input[type="file"]:hover::before {
       document.getElementById("dataForm").addEventListener("submit", onSubmit);
       autoDetectLocation();
     };
+
     function parseJwt(token) {
       try {
         const base64Url = token.split('.')[1];
@@ -175,25 +183,26 @@ input[type="file"]:hover::before {
         return {};
       }
     }
-function handleCredentialResponse(response) {
-  const payload = parseJwt(response.credential);
-  const email = payload.email || "";
-  if (allowedEmails.includes(email)) {
-    // save session for 1 hr
-    localStorage.setItem("userSession", JSON.stringify({
-      email: email,
-      timestamp: Date.now()
-    }));
-    document.querySelector('[name="email"]').value = email;
-    document.getElementById("whoami").innerHTML = `Fiber line marking`;
-    document.getElementById("deniedMsg").classList.add("hidden");
-    document.getElementById("signinCard").classList.add("hidden");
-    document.getElementById("formCard").classList.remove("hidden");
-    initializeForm();
-  } else {
-    document.getElementById("deniedMsg").classList.remove("hidden");
-  }
-}
+
+    function handleCredentialResponse(response) {
+      const payload = parseJwt(response.credential);
+      const email = payload.email || "";
+      if (allowedEmails.includes(email)) {
+        localStorage.setItem("userSession", JSON.stringify({
+          email: email,
+          timestamp: Date.now()
+        }));
+        document.querySelector('[name="email"]').value = email;
+        document.getElementById("whoami").innerHTML = `Fiber line marking`;
+        document.getElementById("deniedMsg").classList.add("hidden");
+        document.getElementById("signinCard").classList.add("hidden");
+        document.getElementById("formCard").classList.remove("hidden");
+        initializeForm();
+      } else {
+        document.getElementById("deniedMsg").classList.remove("hidden");
+      }
+    }
+
     function autoDetectLocation() {
       if (!navigator.geolocation) {
         document.getElementById("locationRow").classList.remove("hidden");
@@ -210,6 +219,7 @@ function handleCredentialResponse(response) {
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     }
+
     function compressImageToDataURL(file, maxKB = 200) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -237,6 +247,7 @@ function handleCredentialResponse(response) {
         reader.readAsDataURL(file);
       });
     }
+
     async function onSubmit(e) {
       e.preventDefault();
       const form = e.target;
@@ -244,21 +255,32 @@ function handleCredentialResponse(response) {
       overlay.className = "spinner-overlay";
       overlay.innerHTML = '<div class="spinner"></div><div class="spinner-text">Submitting...</div>';
       document.body.appendChild(overlay);
+      
+      let photos = [];
       const p1 = form.photo1.files[0];
-      const p2 = form.photo2.files[0];
-      if (!p1 || !p2) {
-        document.querySelector(".spinner-overlay")?.remove();
-        showToast("❌ Both JC Photo and Area Photo are required", "error");
-        return;
-      }
-      let photos;
+      const p2 = form.photo2.files[ 0];
       try {
-        photos = [await compressImageToDataURL(p1, 200), await compressImageToDataURL(p2, 200)];
+        if (p1) {
+          photos[0] = await compressImageToDataURL(p1, 200);
+        } else if (storedPhotos.photo1) {
+          photos[0] = storedPhotos.photo1;
+        }
+        if (p2) {
+          photos[1] = await compressImageToDataURL(p2, 200);
+        } else if (storedPhotos.photo2) {
+          photos[1] = storedPhotos.photo2;
+        }
       } catch (err) {
         document.querySelector(".spinner-overlay")?.remove();
         showToast("❌ Image processing failed: " + err.message, "error");
         return;
       }
+      if (!photos[0] || !photos[1]) {
+        document.querySelector(".spinner-overlay")?.remove();
+        showToast("❌ Both JC Photo and Area Photo are required", "error");
+        return;
+      }
+      
       const payload = {
         email: form.email.value,
         locationLink: form.locationLink.value,
@@ -270,8 +292,8 @@ function handleCredentialResponse(response) {
         linename: form.linename.value,
         drumno: form.drumno.value,
         remark: form.remark.value,
-        vacantcores: form.vacantcores.value, // ✅ new
-        windowoption: form.windowoption.value, // ✅ new
+        vacantcores: form.vacantcores.value,
+        windowoption: form.windowoption.value,
         startTime: form.startTime.value
       };
       fetch(scriptURL, {
@@ -295,6 +317,7 @@ function handleCredentialResponse(response) {
         showToast("❌ Network error: " + err, "error");
       });
     }
+
     function showToast(text, type) {
       const toast = document.createElement("div");
       toast.className = `toast ${type}`;
@@ -305,6 +328,7 @@ function handleCredentialResponse(response) {
         setTimeout(() => toast.remove(), 500);
       }, 3000);
     }
+
     function startTagging() {
       const submitBtn = document.getElementById('submitBtn');
       const startTimeField = document.querySelector('[name="startTime"]');
@@ -317,6 +341,7 @@ function handleCredentialResponse(response) {
       updateCountdown();
       showToast("🕒 Please wait 600 seconds before submitting.", "info");
     }
+
     function updateCountdown() {
       const start = parseInt(localStorage.getItem('startTime') || 0);
       const submitBtn = document.getElementById('submitBtn');
@@ -333,34 +358,77 @@ function handleCredentialResponse(response) {
         showToast("✅ You can now submit the form.", "success");
       }
     }
+
     function loadFormData() {
-      const data = JSON.parse(localStorage.getItem('formData')) || {};
+      const data = JSON.parse(localStorage.getItem('form一天data')) || {};
       const form = document.getElementById('dataForm');
       fieldsToSave.forEach(field => {
         if (data[field]) {
           form[field].value = data[field];
         }
       });
+      // Load photo previews
+      storedPhotos.photo1 = data.photo1 || null;
+      storedPhotos.photo2 = data.photo2 || null;
+      if (storedPhotos.photo1) {
+        const preview1 = document.getElementById('photo1Preview');
+        preview1.src = storedPhotos.photo1;
+        preview1.style.display = 'block';
+      }
+      if (storedPhotos.photo2) {
+        const preview2 = document.getElementById('photo2Preview');
+        preview2.src = storedPhotos.photo2;
+        preview2.style.display = 'block';
+      }
       const start = localStorage.getItem('startTime');
       if (start) {
         form.startTime.value = new Date(parseInt(start)).toISOString();
         document.getElementById('startTaggingBtn').disabled = true;
       }
     }
-    function saveFormData() {
+
+    async function saveFormData() {
       const form = document.getElementById('dataForm');
       const data = {};
       fieldsToSave.forEach(field => {
         data[field] = form[field].value;
       });
+      // Save photos as Data URLs
+      const p1 = form.photo1.files[0];
+      const p2 = form.photo2.files[0];
+      if (p1) {
+        data.photo1 = await compressImageToDataURL(p1, 200);
+        storedPhotos.photo1 = data.photo1;
+        const preview1 = document.getElementById('photo1Preview');
+        preview1.src = data.photo1;
+        preview1.style.display = 'block';
+        form.photo1.value = ''; // Clear file input to allow resubmission
+      } else {
+        data.photo1 = storedPhotos.photo1;
+      }
+      if (p2) {
+        data.photo2 = await compressImageToDataURL(p2, 200);
+        storedPhotos.photo2 = data.photo2;
+        const preview2 = document.getElementById('photo2Preview');
+        preview2.src = data.photo2;
+        preview2.style.display = 'block';
+        form.photo2.value = ''; // Clear file input to allow resubmission
+      } else {
+        data.photo2 = storedPhotos.photo2;
+      }
       localStorage.setItem('formData', JSON.stringify(data));
     }
+
     function clearStoredData() {
       localStorage.removeItem('formData');
       localStorage.removeItem('startTime');
       clearInterval(timerInterval);
       document.getElementById('startTaggingBtn').disabled = false;
+      storedPhotos = { photo1: null, photo2: null };
+      document.getElementById('photo1Preview').style.display = 'none';
+      document.getElementById('photo2Preview').style.display = 'none';
     }
+
     function initializeForm() {
       document.getElementById("whoami").innerHTML = `Fiber line marking`;
       loadFormData();
@@ -369,11 +437,13 @@ function handleCredentialResponse(response) {
         elem.addEventListener('change', saveFormData);
         elem.addEventListener('input', saveFormData);
       });
+      document.querySelector('[name="photo1"]').addEventListener('change', saveFormData);
+      document.querySelector('[name="photo2"]').addEventListener('change', saveFormData);
       timerInterval = setInterval(updateCountdown, 1000);
-      updateCountdown(); // initial call
+      updateCountdown();
     }
   </script>
-<script>
+  <script>
 document.addEventListener("DOMContentLoaded", () => {
   const loginCard = document.getElementById("signinCard");
   const formCard = document.getElementById("formCard");
@@ -384,20 +454,16 @@ document.addEventListener("DOMContentLoaded", () => {
   if (savedSession) {
     const now = Date.now();
     if (now - savedSession.timestamp < ONE_HOUR) {
-      // Session is still valid
-      emailInput.value = savedSession.email; // auto-fill email
+      emailInput.value = savedSession.email;
       loginCard.classList.add("hidden");
       formCard.classList.remove("hidden");
       initializeForm();
       console.log("Auto-login with saved email:", savedSession.email);
     } else {
-      // Session expired
       localStorage.removeItem("userSession");
     }
   }
-  // Note: There is no "signinForm" in the HTML, so this listener might be unused or a leftover. If it's for a form, add id="signinForm" to a form element if needed.
 });
 </script>
- 
 </body>
 </html>
