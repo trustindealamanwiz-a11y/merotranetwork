@@ -6,7 +6,89 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <link rel="stylesheet" href="style.css">
-<style>/* File input custom style with camera icon */
+<style>/
+
+/* Modal overlay */
+.modal-overlay {
+  display: none; /* hidden by default */
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Modal box */
+.modal-box {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  max-width: 320px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Text */
+.modal-message {
+  font-size: 16px;
+  color: #1f2937; /* dark text */
+  margin-bottom: 15px;
+}
+
+/* Buttons inside modal */
+.modal-actions {
+  display: flex;
+  justify-content: space-around;
+  gap: 10px;
+}
+
+.modal-actions .btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.modal-actions .btn:hover {
+  opacity: 0.9;
+}
+
+/* Danger (red) button */
+.modal-actions .btn.danger {
+  background: #dc2626;
+  color: #fff;
+}
+
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(-10px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+
+  
+.btn.danger {
+  background-color: #dc2626; /* Red color */
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn.danger:hover {
+  background-color: #b91c1c; /* Darker red on hover */
+}
+
+  
+  * File input custom style with camera icon */
 input[type="file"] {
   display: block;
   padding: 8px;
@@ -136,6 +218,7 @@ input[type="file"]:hover::before {
         <button type="submit" id="submitBtn" class="btn success" disabled>
           Tagging done <span id="countdown"></span>
         </button>
+        <button type="button" id="resetBtn" class="btn danger" onclick="resetTag()">Reset this tag</button>
         <br>
         <span id="submitStatus" class="muted small-text"></span>
       </div>
@@ -430,7 +513,51 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   // Note: There is no "signinForm" in the HTML, so this listener might be unused or a leftover. If it's for a form, add id="signinForm" to a form element if needed.
 });
+
+function resetTag() {
+  // Show modal instead of confirm box
+  document.getElementById("resetModal").style.display = "flex";
+
+  // Handle confirm
+  document.getElementById("confirmResetBtn").onclick = function () {
+    const email = localStorage.getItem("userSession"); // preserve session
+    localStorage.removeItem('formData');
+    localStorage.removeItem('startTime');
+    localStorage.removeItem('photo1');
+    localStorage.removeItem('photo2');
+    clearInterval(timerInterval);
+    document.getElementById('dataForm').reset();
+    document.getElementById('startTaggingBtn').disabled = false;
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('countdown').textContent = '';
+    document.getElementById("resetModal").style.display = "none"; // close modal
+    showToast("🔄 Tag has been reset. You can start fresh.", "info");
+  };
+
+  // Handle cancel
+  document.getElementById("cancelResetBtn").onclick = function () {
+    document.getElementById("resetModal").style.display = "none";
+  };
+}
+
+
+
+
+  
 </script>
- 
+
+<!-- Custom Reset Confirmation Modal -->
+<div id="resetModal" class="modal-overlay">
+  <div class="modal-box">
+    <p class="modal-message">⚠️ Are you sure you want to reset this tag?<br>All unsaved progress will be lost.</p>
+    <div class="modal-actions">
+      <button id="confirmResetBtn" class="btn danger">Yes, Reset</button>
+      <button id="cancelResetBtn" class="btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+  
 </body>
 </html>
