@@ -423,7 +423,7 @@ async function fetchUserList() {
     dot.classList.remove("blink");
 
     if (resp.status === 'success' && Array.isArray(resp.users) && resp.users.length === 0) {
-      dot.textContent = "🔴"; text.textContent = "No users found";
+      dot.textContent = "🟡"; text.textContent = "No users found";
       document.getElementById('userListContainer').innerHTML = '<div style="margin-top:12px;color:#b91c1c;font-weight:bold;">VBO could not find any user on this line !</div>';
       return;
     }
@@ -434,7 +434,7 @@ async function fetchUserList() {
     }
 
     // server returned message or error
-    dot.textContent = "🟡"; text.textContent = "Server message";
+    dot.textContent = "🔴"; text.textContent = "Server message";
     document.getElementById('userListContainer').innerHTML = `<div class="muted small-text">${resp.message || 'Unknown server message'}</div>`;
 
   } catch(err) {
