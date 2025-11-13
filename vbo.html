@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
-    /* Basic minimal styles (you can keep your style.css or merge) */
-    body { font-family: Arial, sans-serif; margin: 16px; background:#f7fafc; color:#111827; }
+    body { font-family: Arial, sans-serif; margin:16px; background:#f7fafc; color:#111827; }
     .page-title { margin:0 0 12px 0; font-size:20px; }
     .card { background:white; padding:12px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.06); max-width:760px; margin-bottom:12px; }
     .row { margin:8px 0; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
@@ -30,8 +29,6 @@
     .toast.success { background:#059669; }
     .toast.error { background:#dc2626; }
     .toast.info { background:#0ea5a4; }
-
-    /* Modal overlay for reset & user list */
     .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:2000; align-items:center; justify-content:center; }
     .modal-box { background:white; padding:16px; border-radius:10px; max-width:900px; width:95%; max-height:85vh; overflow:auto; box-shadow:0 8px 30px rgba(0,0,0,0.2); }
     .modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
@@ -39,7 +36,6 @@
     th, td { padding:8px; border:1px solid #e5e7eb; text-align:left; font-size:13px; }
     th { background:#f3f4f6; }
     .selected { border-color:#45b08e; background:#e6ffed; }
-
     .timestamp-display { font-size:13px; color:#374151; margin-left:6px; }
   </style>
 </head>
@@ -48,7 +44,6 @@
     <h2 class="page-title">Check users on this line</h2>
   </header>
 
-  <!-- Sign-in card -->
   <div id="signinCard" class="card">
     <div class="row center">
       <div id="signinBtn"></div>
@@ -61,7 +56,6 @@
     </div>
   </div>
 
-  <!-- Form card -->
   <div id="formCard" class="card hidden">
     <div class="row muted" id="whoami"></div>
 
@@ -77,8 +71,6 @@
         </select>
       </div>
 
-      <!-- Three timestamp buttons -->
-      <div class="form-step">Timestamps (तीनों क्लिक क्रमशः करें)</div>
       <div class="row">
         <button type="button" id="tsBtn1" class="btn primary">पहली बार जोड़ते ही तुरंत क्लिक करें</button>
         <span id="ts1disp" class="timestamp-display"></span>
@@ -92,7 +84,6 @@
         <span id="ts3disp" class="timestamp-display"></span>
       </div>
 
-      <!-- Splitter select remains -->
       <div class="row">
         <select name="splitter" required>
           <option value="">Select Splitter</option>
@@ -103,19 +94,16 @@
         </select>
       </div>
 
-      <!-- Step 3 changed -->
       <div class="form-step">ड्रम नंबर और जे सी की फोटो</div>
       <div class="row">
         <input type="file" name="photo1" accept="image/*" capture="environment" required />
       </div>
 
-      <!-- Step 4 changed -->
       <div class="form-step">पोल और लोकेशन की फोटो थोड़ी दूर से</div>
       <div class="row">
         <input type="file" name="photo2" accept="image/*" capture="environment" required />
       </div>
 
-      <!-- JC name remains -->
       <div class="row">
         <input type="text" name="jcname" required placeholder="Enter JC Name" />
       </div>
@@ -159,24 +147,11 @@
 
       <div class="row actions">
         <button type="button" id="submitBtn" class="btn success" disabled>Submit to check users on this line</button>
-        <button type="button" id="resetBtn" class="btn danger">Reset this tag</button>
         <span id="submitStatus" class="muted small-text"></span>
       </div>
     </form>
   </div>
 
-  <!-- Reset Modal -->
-  <div id="resetModal" class="modal-overlay">
-    <div class="modal-box">
-      <p style="font-size:16px;">⚠️ Are you sure you want to reset this tag?<br>All unsaved progress will be lost.</p>
-      <div class="modal-actions">
-        <button id="confirmResetBtn" class="btn danger">Yes, Reset</button>
-        <button id="cancelResetBtn" class="btn">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- User list modal -->
   <div id="userListModal" class="modal-overlay">
     <div class="modal-box">
       <h3>User list on this line</h3>
@@ -190,53 +165,38 @@
   </div>
 
 <script>
-  // ========== CONFIG ==========
-  const allowedEmails = ["shahzebahmad2024@gmail.com", "trustindeal.amanwiz@gmail.com", "alamshan761@gmail.com", "ganeshnigam597@gmail.com", "sushilyadav8352@gmail.com","ainulkhan424@gmail.com","sushilya9044@gmail.com","sy7903125@gmail.com"];
-  const scriptURL = "https://script.google.com/macros/s/AKfycbxRnBmBu_ozeU05Wv7cesr5AsWCIILv8FEwaeUnGyDyswJ86hyQWPX259_vwAJZ-h_S/exec"; // keep your URL
+  const allowedEmails = ["shahzebahmad2024@gmail.com","trustindeal.amanwiz@gmail.com","alamshan761@gmail.com","ganeshnigam597@gmail.com","sushilyadav8352@gmail.com","ainulkhan424@gmail.com","sushilya9044@gmail.com","sy7903125@gmail.com"];
+  const scriptURL = "https://script.google.com/macros/s/AKfycbyBZtPsTNzsQo5OMNE6yqGmWb12030EzpmxzOXPzNlKrvEOIunkYL-8B6pjWfYtuq9R/exec";
   const clientID = "599836800018-6df1f03d2l70q5aoncd0s3b99j72je38.apps.googleusercontent.com";
-  const DISABLE_SECONDS = 8 * 60; // 8 minutes
-  const TIMER_UPDATE_INTERVAL = 3000; // every 3 seconds for display
 
-  // ========== STATE ==========
+  // ======= CHANGE THIS VALUE EASILY =======
+  // Disable seconds for submit button after submit (8 minutes). Change here if needed.
+  const DISABLE_SECONDS = 3 * 60; // <<-- change this number (in seconds) to adjust disable period
+  // =======================================
+
+  const TIMER_UPDATE_INTERVAL = 3000; // display update every 3 seconds
   let timerInterval = null;
   let timerRemaining = 0;
   let timerDisplayInterval = null;
 
-  // fields to save locally
-  const fieldsToSave = ['windowoption', 'splitter', 'jcname', 'wire', 'vacantcores', 'wirecolor', 'linename', 'drumno', 'remark'];
+  const fieldsToSave = ['windowoption','splitter','jcname','wire','vacantcores','wirecolor','linename','drumno','remark'];
 
   window.onload = () => {
     if (window.google && google.accounts && google.accounts.id) {
-      google.accounts.id.initialize({
-        client_id: clientID,
-        callback: handleCredentialResponse
-      });
-      google.accounts.id.renderButton(
-        document.getElementById("signinBtn"),
-        { theme: "outline", size: "large", type: "standard", shape: "pill" }
-      );
+      google.accounts.id.initialize({ client_id: clientID, callback: handleCredentialResponse });
+      google.accounts.id.renderButton(document.getElementById("signinBtn"), { theme: "outline", size: "large", type: "standard", shape: "pill" });
     }
-    document.getElementById("resetBtn").addEventListener("click", resetTag);
-    document.getElementById("confirmResetBtn").addEventListener("click", doConfirmReset);
-    document.getElementById("cancelResetBtn").addEventListener("click", () => { document.getElementById("resetModal").style.display = "none"; });
     document.getElementById("submitBtn").addEventListener("click", onSubmitClick);
-    document.getElementById("closeUserListBtn").addEventListener("click", () => { closeUserListModal(); });
-
-    document.getElementById('tsBtn1').addEventListener('click', () => captureTimestamp(1));
-    document.getElementById('tsBtn2').addEventListener('click', () => captureTimestamp(2));
-    document.getElementById('tsBtn3').addEventListener('click', () => captureTimestamp(3));
-
+    document.getElementById("closeUserListBtn").addEventListener("click", closeUserListModal);
+    document.getElementById('tsBtn1').addEventListener('click', ()=>captureTimestamp(1));
+    document.getElementById('tsBtn2').addEventListener('click', ()=>captureTimestamp(2));
+    document.getElementById('tsBtn3').addEventListener('click', ()=>captureTimestamp(3));
     document.getElementById('dataForm').addEventListener('change', saveFormData);
-    autoDetectLocation();
-
-    // photo inputs
     document.querySelector('[name="photo1"]').addEventListener('change', savePhotoAndHighlight);
     document.querySelector('[name="photo2"]').addEventListener('change', savePhotoAndHighlight);
-
-    // attempt auto-login via saved session
-    const savedSession = JSON.parse(localStorage.getItem("userSession") || null);
-    const ONE_HOUR = 60 * 60 * 1000;
-    if (savedSession && (Date.now() - savedSession.timestamp < ONE_HOUR)) {
+    const savedSession = JSON.parse(localStorage.getItem("userSession")||null);
+    const ONE_HOUR = 60*60*1000;
+    if (savedSession && (Date.now()-savedSession.timestamp < ONE_HOUR)) {
       document.querySelector("input[name='email']").value = savedSession.email;
       document.getElementById("signinCard").classList.add("hidden");
       document.getElementById("formCard").classList.remove("hidden");
@@ -247,14 +207,10 @@
   function parseJwt(token) {
     try {
       const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
-        '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-      ).join(''));
+      const base64 = base64Url.replace(/-/g,'+').replace(/_/g,'/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c=>'%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
       return JSON.parse(jsonPayload);
-    } catch {
-      return {};
-    }
+    } catch { return {}; }
   }
 
   function handleCredentialResponse(response) {
@@ -273,49 +229,35 @@
   }
 
   function autoDetectLocation() {
-    if (!navigator.geolocation) {
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        // create hidden field if not exist
-        let loc = document.querySelector("[name=locationLink]");
-        if (!loc) {
-          loc = document.createElement('input');
-          loc.type = 'hidden';
-          loc.name = 'locationLink';
-          document.getElementById('dataForm').appendChild(loc);
-        }
-        loc.value = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-      },
-      () => {},
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(pos => {
+      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      let loc = document.querySelector("[name=locationLink]");
+      if (!loc) {
+        loc = document.createElement('input'); loc.type='hidden'; loc.name='locationLink';
+        document.getElementById('dataForm').appendChild(loc);
+      }
+      loc.value = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+    }, ()=>{}, { enableHighAccuracy:true, timeout:10000, maximumAge:0 });
   }
 
-  // image compression (same as before)
   function compressImageToDataURL(file, maxKB = 200) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve,reject)=>{
       const reader = new FileReader();
-      reader.onerror = () => reject(new Error("Failed to read file"));
-      reader.onload = () => {
+      reader.onerror = ()=>reject(new Error("Failed to read file"));
+      reader.onload = ()=>{
         const img = new Image();
-        img.onerror = () => reject(new Error("Invalid image"));
-        img.onload = () => {
+        img.onerror = ()=>reject(new Error("Invalid image"));
+        img.onload = ()=>{
           const canvas = document.createElement("canvas");
           const ctx = canvas.getContext("2d");
-          const scale = Math.min(1, Math.sqrt((maxKB * 1024) / (file.size || (img.width * img.height))));
-          canvas.width = Math.max(1, Math.round(img.width * scale));
-          canvas.height = Math.max(1, Math.round(img.height * scale));
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const scale = Math.min(1, Math.sqrt((maxKB*1024)/(file.size || (img.width*img.height))));
+          canvas.width = Math.max(1, Math.round(img.width*scale));
+          canvas.height = Math.max(1, Math.round(img.height*scale));
+          ctx.drawImage(img,0,0,canvas.width,canvas.height);
           let quality = 0.75;
           let dataUrl = canvas.toDataURL("image/jpeg", quality);
-          while (dataUrl.length / 1024 > maxKB && quality > 0.2) {
-            quality -= 0.05;
-            dataUrl = canvas.toDataURL("image/jpeg", quality);
-          }
+          while (dataUrl.length/1024 > maxKB && quality > 0.2) { quality -= 0.05; dataUrl = canvas.toDataURL("image/jpeg", quality); }
           resolve(dataUrl);
         };
         img.src = reader.result;
@@ -325,42 +267,21 @@
   }
 
   async function onSubmitClick() {
-    // if in show-user-list mode
     const submitBtn = document.getElementById('submitBtn');
-    if (submitBtn.dataset.mode === 'show') {
-      // show user list
-      openUserListModal();
-      return;
-    }
-    // else mode = submit
+    if (submitBtn.dataset.mode === 'show') { openUserListModal(); return; }
+    // Validate timestamps captured locally before submit
+    const t1 = localStorage.getItem('ts1'), t2 = localStorage.getItem('ts2'), t3 = localStorage.getItem('ts3');
+    if (!t1 || !t2 || !t3) { showToast("कृपया तीनों टाइमस्टैम्प पहले कैप्चर करें।", "error"); return; }
     const form = document.getElementById('dataForm');
-    // validations: ensure timestamps present
-    const t1 = localStorage.getItem('ts1');
-    const t2 = localStorage.getItem('ts2');
-    const t3 = localStorage.getItem('ts3');
-    if (!t1 || !t2 || !t3) {
-      showToast("कृपया तीनों टाइमस्टैम्प पहले कैप्चर करें।", "error");
-      return;
-    }
-    // ensure photos present
-    const p1 = form.photo1.files[0];
-    const p2 = form.photo2.files[0];
+    const p1 = form.photo1.files[0], p2 = form.photo2.files[0];
     if (!p1 || !p2) { showToast("❌ Both JC Photo and Area Photo are required", "error"); return; }
 
-    // show overlay
-    const overlay = document.createElement("div");
-    overlay.className = "spinner-overlay";
-    overlay.innerHTML = '<div class="spinner"></div><div class="spinner-text" style="color:white;margin-left:12px;">Submitting...</div>';
+    const overlay = document.createElement("div"); overlay.className="spinner-overlay"; overlay.innerHTML = '<div class="spinner"></div>';
     document.body.appendChild(overlay);
 
     let photos;
-    try {
-      photos = [await compressImageToDataURL(p1, 200), await compressImageToDataURL(p2, 200)];
-    } catch (err) {
-      document.querySelector(".spinner-overlay")?.remove();
-      showToast("❌ Image processing failed: " + err.message, "error");
-      return;
-    }
+    try { photos = [await compressImageToDataURL(p1,200), await compressImageToDataURL(p2,200)]; }
+    catch(err){ document.querySelector(".spinner-overlay")?.remove(); showToast("❌ Image processing failed: "+err.message, "error"); return; }
 
     const payload = {
       action: "submit",
@@ -376,154 +297,83 @@
       remark: form.remark.value,
       vacantcores: form.vacantcores.value,
       windowoption: form.windowoption.value,
-      // three timestamps in ISO
       ts1: localStorage.getItem('ts1') || "",
       ts2: localStorage.getItem('ts2') || "",
       ts3: localStorage.getItem('ts3') || ""
     };
 
     try {
-      const r = await fetch(scriptURL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
-      });
+      const r = await fetch(scriptURL, { method: "POST", headers: { "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
       const resp = await r.json();
       document.querySelector(".spinner-overlay")?.remove();
       if (resp.status === "success") {
-        showToast("✅ Data submitted. You can fetch users after 8 minutes.", "success");
-        // disable submit button for 8 minutes
+        showToast("✅ Data submitted. You can view user list after the wait period.", "success");
+        // disable submit button for configured seconds. This value is placed above as DISABLE_SECONDS for easy edit.
         startDisableTimer(DISABLE_SECONDS);
-        clearStoredDataAfterSubmit();
-        // keep form values stored? we already stored in localStorage via saveFormData
-      } else {
-        showToast("❌ " + (resp.message || "Server error"), "error");
-      }
-    } catch (err) {
+        // clear local timestamps so popup will rely on sheet timestamps
+        localStorage.removeItem('ts1'); localStorage.removeItem('ts2'); localStorage.removeItem('ts3');
+        document.getElementById('ts1disp').textContent=''; document.getElementById('ts2disp').textContent=''; document.getElementById('ts3disp').textContent='';
+      } else showToast("❌ "+(resp.message||"Server error"), "error");
+    } catch(err) {
       document.querySelector(".spinner-overlay")?.remove();
-      showToast("❌ Network error: " + err, "error");
+      showToast("❌ Network error: "+err, "error");
     }
   }
 
-  // start disable timer and update button text and countdown
   function startDisableTimer(seconds) {
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
-    submitBtn.dataset.mode = 'submit'; // submit mode
+    submitBtn.dataset.mode = 'submit';
     timerRemaining = seconds;
-    // initial display
-    updateSubmitTimerDisplay();
-    // clear previous intervals
-    clearInterval(timerInterval);
-    clearInterval(timerDisplayInterval);
-    // update remaining seconds every second
-    timerInterval = setInterval(() => {
-      timerRemaining = Math.max(0, timerRemaining - 1);
+    clearInterval(timerInterval); clearInterval(timerDisplayInterval);
+    timerInterval = setInterval(()=> {
+      timerRemaining = Math.max(0, timerRemaining-1);
       if (timerRemaining === 0) {
         clearInterval(timerInterval);
-        // switch to show mode
         submitBtn.disabled = false;
         submitBtn.dataset.mode = 'show';
         submitBtn.textContent = 'Show user list';
         showToast("✅ You can now view the user list.", "success");
       }
     }, 1000);
-    // update display every 3 seconds (as requested)
     timerDisplayInterval = setInterval(updateSubmitTimerDisplay, TIMER_UPDATE_INTERVAL);
-    // also immediate update
     updateSubmitTimerDisplay();
   }
 
   function updateSubmitTimerDisplay() {
     const submitBtn = document.getElementById('submitBtn');
     if (timerRemaining > 0) {
-      const mm = Math.floor(timerRemaining / 60);
-      const ss = timerRemaining % 60;
+      const mm = Math.floor(timerRemaining/60), ss = timerRemaining%60;
       submitBtn.textContent = `Submit to check users on this line (${mm}m ${ss}s)`;
     }
-  }
-
-  function clearStoredDataAfterSubmit() {
-    // we keep formData, but clear timestamp keys so future tagging starts fresh
-    localStorage.removeItem('ts1');
-    localStorage.removeItem('ts2');
-    localStorage.removeItem('ts3');
-    document.getElementById('ts1disp').textContent = '';
-    document.getElementById('ts2disp').textContent = '';
-    document.getElementById('ts3disp').textContent = '';
   }
 
   function captureTimestamp(which) {
     const now = new Date();
     const iso = now.toISOString();
-    localStorage.setItem('ts' + which, iso);
-    document.getElementById('ts' + which + 'disp').textContent = iso.replace('T',' ').split('.')[0];
-    showToast(`Timestamp ${which} captured: ${iso}`, "info");
-    // enable submit button only when all three exist
-    const t1 = localStorage.getItem('ts1');
-    const t2 = localStorage.getItem('ts2');
-    const t3 = localStorage.getItem('ts3');
-    if (t1 && t2 && t3) {
-      document.getElementById('submitBtn').disabled = false;
-    }
+    localStorage.setItem('ts'+which, iso);
+    document.getElementById('ts'+which+'disp').textContent = iso.replace('T',' ').split('.')[0];
+    showToast(`Timestamp ${which} captured`, "info");
+    const t1 = localStorage.getItem('ts1'), t2 = localStorage.getItem('ts2'), t3 = localStorage.getItem('ts3');
+    if (t1 && t2 && t3) document.getElementById('submitBtn').disabled = false;
   }
 
-  function resetTag() {
-    document.getElementById("resetModal").style.display = "flex";
-  }
-  function doConfirmReset() {
-    const email = localStorage.getItem("userSession"); // preserve session
-    localStorage.removeItem('formData');
-    localStorage.removeItem('startTime');
-    localStorage.removeItem('photo1');
-    localStorage.removeItem('photo2');
-    localStorage.removeItem('ts1');
-    localStorage.removeItem('ts2');
-    localStorage.removeItem('ts3');
-    clearInterval(timerInterval);
-    clearInterval(timerDisplayInterval);
-    document.getElementById('dataForm').reset();
-    document.getElementById('startTaggingBtn')?.removeAttribute('disabled');
-    document.getElementById('submitBtn').disabled = true;
-    document.getElementById('submitBtn').dataset.mode = 'submit';
-    document.getElementById('ts1disp').textContent = '';
-    document.getElementById('ts2disp').textContent = '';
-    document.getElementById('ts3disp').textContent = '';
-    document.getElementById("resetModal").style.display = "none";
-    showToast("🔄 Tag has been reset. You can start fresh.", "info");
-  }
-
-  function showToast(text, type = "default") {
-    const toast = document.createElement("div");
-    toast.className = `toast ${type}`;
-    toast.textContent = text;
+  function showToast(text, type="default") {
+    const toast = document.createElement("div"); toast.className=`toast ${type}`; toast.textContent = text;
     document.body.appendChild(toast);
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      setTimeout(() => toast.remove(), 600);
-    }, 3000);
+    setTimeout(()=>{ toast.style.opacity='0'; setTimeout(()=>toast.remove(),600); },3000);
   }
 
-  // Save and load form data locally
   function saveFormData() {
     const data = {};
-    fieldsToSave.forEach(field => {
-      const el = document.querySelector(`[name="${field}"]`);
-      if (el) data[field] = el.value;
-    });
+    fieldsToSave.forEach(field => { const el = document.querySelector(`[name="${field}"]`); if (el) data[field] = el.value; });
     localStorage.setItem('formData', JSON.stringify(data));
   }
 
   async function loadFormData() {
-    const data = JSON.parse(localStorage.getItem('formData') || "{}");
-    fieldsToSave.forEach(field => {
-      const el = document.querySelector(`[name="${field}"]`);
-      if (el && data[field]) el.value = data[field];
-    });
-    // load photos if saved as base64
-    await loadPhoto('photo1');
-    await loadPhoto('photo2');
-    // load timestamps
+    const data = JSON.parse(localStorage.getItem('formData')||"{}");
+    fieldsToSave.forEach(field => { const el = document.querySelector(`[name="${field}"]`); if (el && data[field]) el.value = data[field]; });
+    await loadPhoto('photo1'); await loadPhoto('photo2');
     const t1 = localStorage.getItem('ts1'); if (t1) document.getElementById('ts1disp').textContent = t1.replace('T',' ').split('.')[0];
     const t2 = localStorage.getItem('ts2'); if (t2) document.getElementById('ts2disp').textContent = t2.replace('T',' ').split('.')[0];
     const t3 = localStorage.getItem('ts3'); if (t3) document.getElementById('ts3disp').textContent = t3.replace('T',' ').split('.')[0];
@@ -532,124 +382,58 @@
 
   async function loadPhoto(name) {
     const base64 = localStorage.getItem(name);
-    if (base64) {
-      try {
-        const response = await fetch(base64);
-        const blob = await response.blob();
-        const file = new File([blob], `${name}.jpg`, {type: 'image/jpeg'});
-        const input = document.querySelector(`[name="${name}"]`);
-        const dt = new DataTransfer();
-        dt.items.add(file);
-        input.files = dt.files;
-        input.classList.add('selected');
-      } catch (err) {
-        console.error('Failed to load photo:', err);
-      }
-    }
+    if (!base64) return;
+    try {
+      const response = await fetch(base64); const blob = await response.blob();
+      const file = new File([blob], `${name}.jpg`, {type:'image/jpeg'}); const input = document.querySelector(`[name="${name}"]`);
+      const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files; input.classList.add('selected');
+    } catch(err){ console.error('Failed to load photo:',err); }
   }
 
   function savePhotoAndHighlight(e) {
-    const input = e.target;
-    const file = input.files[0];
-    if (file) {
-      compressImageToDataURL(file, 200).then(dataUrl => {
-        localStorage.setItem(input.name, dataUrl);
-        input.classList.add('selected');
-      }).catch(err => {
-        console.error('Failed to save photo:', err);
-      });
-    } else {
-      input.classList.remove('selected');
-    }
-  }
-
-  function clearIntervalTimers() {
-    clearInterval(timerInterval);
-    clearInterval(timerDisplayInterval);
+    const input = e.target; const file = input.files[0];
+    if (file) { compressImageToDataURL(file,200).then(dataUrl=>{ localStorage.setItem(input.name, dataUrl); input.classList.add('selected'); }).catch(err=>console.error(err)); }
+    else input.classList.remove('selected');
   }
 
   function initializeForm() {
     document.getElementById("whoami").innerHTML = `Check users on this line`;
     loadFormData();
-    fieldsToSave.forEach(field => {
-      const elem = document.querySelector(`[name="${field}"]`);
-      if (elem) {
-        elem.addEventListener('change', saveFormData);
-        elem.addEventListener('input', saveFormData);
-      }
-    });
+    fieldsToSave.forEach(field => { const elem = document.querySelector(`[name="${field}"]`); if (elem){ elem.addEventListener('change', saveFormData); elem.addEventListener('input', saveFormData); }});
+    autoDetectLocation();
   }
 
-  // ======= User list retrieval & modal display =======
+  // User list modal and fetch (server will read timestamps from sheet)
   function openUserListModal() {
     document.getElementById('userListContainer').innerHTML = '<div class="muted small-text">Fetching user list…</div>';
     document.getElementById('userListModal').style.display = 'flex';
     fetchUserList();
   }
-  function closeUserListModal() {
-    document.getElementById('userListModal').style.display = 'none';
-  }
+  function closeUserListModal() { document.getElementById('userListModal').style.display = 'none'; }
 
   async function fetchUserList() {
-    const payload = {
-      action: 'get_users',
-      windowoption: document.querySelector('[name="windowoption"]').value,
-      ts1: localStorage.getItem('ts1') || "",
-      ts2: localStorage.getItem('ts2') || "",
-      ts3: localStorage.getItem('ts3') || ""
-    };
-    // If timestamps were cleared on submit, they may be empty — instruct user
-    if (!payload.windowoption) {
-      document.getElementById('userListContainer').innerHTML = '<div class="muted small-text">Please select window first.</div>';
-      return;
-    }
-    if (!payload.ts1 || !payload.ts2 || !payload.ts3) {
-      // Try to use timestamps from the last submitted row: server stores them in the sheet; but client cannot read sheet. So require user to have clicked after submit and waited.
-      document.getElementById('userListContainer').innerHTML = '<div class="muted small-text">Timestamps missing. Ensure you submitted earlier and used the three timestamp buttons before submission.</div>';
-      return;
-    }
-
+    const email = document.querySelector('[name="email"]').value;
+    const windowoption = document.querySelector('[name="windowoption"]').value;
+    if (!windowoption) { document.getElementById('userListContainer').innerHTML = '<div class="muted small-text">Please select window first.</div>'; return; }
+    const payload = { action:'get_users', windowoption, email };
     try {
-      const r = await fetch(scriptURL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
-      });
+      const r = await fetch(scriptURL, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(payload) });
       const resp = await r.json();
-      if (resp.status === 'success' && Array.isArray(resp.users)) {
-        renderUserTable(resp.users);
-      } else {
-        document.getElementById('userListContainer').innerHTML = `<div class="muted small-text">No users found or server returned error: ${resp.message || 'none'}</div>`;
-      }
-    } catch (err) {
+      if (resp.status === 'success' && Array.isArray(resp.users)) renderUserTable(resp.users);
+      else document.getElementById('userListContainer').innerHTML = `<div class="muted small-text">${resp.message || 'No users found'}</div>`;
+    } catch(err) {
       document.getElementById('userListContainer').innerHTML = `<div class="muted small-text">Network error: ${err}</div>`;
     }
   }
 
   function renderUserTable(users) {
-    if (!users.length) {
-      document.getElementById('userListContainer').innerHTML = '<div class="muted small-text">No common users found near the three timestamps.</div>';
-      return;
-    }
+    if (!users.length) { document.getElementById('userListContainer').innerHTML = '<div class="muted small-text">No common users found near the saved timestamps.</div>'; return; }
     let html = '<table><thead><tr><th>SN</th><th>User name</th><th>Contact</th><th>Area</th><th>Time</th></tr></thead><tbody>';
-    users.forEach((u, idx) => {
-      html += `<tr>
-        <td>${idx+1}</td>
-        <td>${escapeHtml(u.username||'')}</td>
-        <td>${escapeHtml(u.contact||'')}</td>
-        <td>${escapeHtml(u.area||'')}</td>
-        <td>${escapeHtml(u.time||'')}</td>
-      </tr>`;
-    });
-    html += '</tbody></table>';
-    document.getElementById('userListContainer').innerHTML = html;
+    users.forEach((u,idx)=>{ html += `<tr><td>${idx+1}</td><td>${escapeHtml(u.username||'')}</td><td>${escapeHtml(u.contact||'')}</td><td>${escapeHtml(u.area||'')}</td><td>${escapeHtml(u.time||'')}</td></tr>`; });
+    html += '</tbody></table>'; document.getElementById('userListContainer').innerHTML = html;
   }
 
-  function escapeHtml(s) {
-    if (!s) return '';
-    return s.replace(/[&<>"']/g, function(m){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m];});
-  }
-
+  function escapeHtml(s){ if(!s) return ''; return s.replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
 </script>
 </body>
 </html>
