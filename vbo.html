@@ -7,53 +7,53 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     /* ---------- Basic layout ---------- */
-    body { font-family: Arial, Helvetica, sans-serif; margin:16px; background:#f7fafc; color:#111827;}
-    .page-title { font-size:20px; margin:0 0 12px 0; }
-    .card { background:#fff; padding:12px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.06); max-width:900px; margin-bottom:12px;}
-    .row { margin:8px 0; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-    .muted { color:#6b7280; }
-    .hidden { display:none; }
-    .btn { padding:8px 12px; border-radius:6px; border:none; cursor:pointer; font-weight:600; }
-    .btn.primary { background:#0ea5a4; color:#fff; }
-    .btn.success { background:#10b981; color:#fff; }
-    .btn.danger { background:#ef4444; color:#fff; }
-    .btn.disabled { background:#9ca3af; cursor:not-allowed; }
-    select,input[type="text"],input[type="number"],textarea { padding:8px; border-radius:6px; border:1px solid #d1d5db; min-width:220px; }
-    textarea { min-height:80px; width:100%; }
-    input[type="file"] { display:block; padding:8px; border-radius:8px; border:2px dashed #aaa; background:#f9f9f9; cursor:pointer; width:100%; }
-    .small-text { font-size:12px; }
-    .center { justify-content:center; }
-    .actions { display:flex; gap:8px; align-items:center; }
-    /* spinner */
-    .spinner-overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.35); z-index:9999; }
-    .spinner { width:48px; height:48px; border-radius:50%; border:5px solid #f3f4f6; border-top-color:#3b82f6; animation:spin 1s linear infinite; }
-    @keyframes spin { to { transform:rotate(360deg);} }
-    /* toast */
-    .toast { position:fixed; right:12px; bottom:12px; background:#111827; color:#fff; padding:8px 12px; border-radius:8px; z-index:10001; opacity:0.95; }
-    .toast.success { background:#059669; } .toast.error { background:#dc2626; } .toast.info { background:#0ea5a4; }
-    /* modal / user list */
-    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:2000; align-items:center; justify-content:center; }
-    .modal-box { background:#fff; padding:16px; border-radius:10px; max-width:980px; width:95%; max-height:85vh; overflow:auto; box-shadow:0 8px 30px rgba(0,0,0,0.2); }
-    table { width:100%; border-collapse:collapse; margin-top:8px; }
-    th,td { padding:8px; border:1px solid #e5e7eb; text-align:left; font-size:13px; }
-    th { background:#f3f4f6; }
-    .selected { border-color:#45b08e; background:#e6ffed; }
-    .timestamp-display { font-size:13px; color:#374151; margin-left:6px; min-width:260px; display:inline-block; }
-    /* blinking animation & status */
-    @keyframes blink { 50% { opacity: 0; } }
-    .blink { animation: blink 1s infinite; }
-    #statusDot { font-size:18px; margin-right:8px; vertical-align:middle; }
-    #userListStatus { display:flex; align-items:center; gap:6px; margin-bottom:8px; font-weight:700; }
+    body {font-family: Arial, Helvetica, sans-serif; margin:16px; background:#f7fafc; color:#111827;}
+    .page-title {font-size:20px; margin:0 0 12px 0;}
+    .card {background:#fff; padding:12px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.06); max-width:900px; margin-bottom:12px;}
+    .row {margin:8px 0; display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+    .muted {color:#6b7280;}
+    .hidden {display:none;}
+    .btn {padding:8px 12px; border-radius:6px; border:none; cursor:pointer; font-weight:600;}
+    .btn.primary {background:#0ea5a4; color:#fff;}
+    .btn.success {background:#10b981; color:#fff;}
+    .btn.danger {background:#ef4444; color:#fff;}
+    .btn.disabled {background:#9ca3af !important; cursor:not-allowed; opacity:0.7;}
+    select,input[type="text"],input[type="number"],textarea {padding:8px; border-radius:6px; border:1px solid #d1d5db; min-width:220px;}
+    textarea {min-height:80px; width:100%;}
+    input[type="file"] {display:block; padding:8px; border-radius:8px; border:2px dashed #aaa; background:#f9f9f9; cursor:pointer; width:100%;}
+    .small-text {font-size:12px;}
+    .center {justify-content:center;}
+    .actions {display:flex; gap:8px; align-items:center;}
+    .timer-text {font-weight:600; color:#dc2626; min-width:80px;}
+    /* spinner / toast / modal – unchanged */
+    .spinner-overlay {position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.35); z-index:9999;}
+    .spinner {width:48px; height:48px; border-radius:50%; border:5px solid #f3f4f6; border-top-color:#3b82f6; animation:spin 1s linear infinite;}
+    @keyframes spin {to{transform:rotate(360deg);}}
+    .toast {position:fixed; right:12px; bottom:12px; background:#111827; color:#fff; padding:8px 12px; border-radius:8px; z-index:10001; opacity:0.95;}
+    .toast.success{background:#059669;}.toast.error{background:#dc2626;}.toast.info{background:#0ea5a4;}
+    .modal-overlay {display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:2000; align-items:center; justify-content:center;}
+    .modal-box {background:#fff; padding:16px; border-radius:10px; max-width:980px; width:95%; max-height:85vh; overflow:auto; box-shadow:0 8px 30px rgba(0,0,0,0.2);}
+    table {width:100%; border-collapse:collapse; margin-top:8px;}
+    th,td {padding:8px; border:1px solid #e5e7eb; text-align:left; font-size:13px;}
+    th {background:#f3f4f6;}
+    .selected {border-color:#45b08e; background:#e6ffed;}
+    .timestamp-display {font-size:13px; color:#374151; margin-left:6px; min-width:260px; display:inline-block;}
+    @keyframes blink {50%{opacity:0;}}
+    .blink {animation:blink 1s infinite;}
+    #statusDot {font-size:18px; margin-right:8px; vertical-align:middle;}
+    #userListStatus {display:flex; align-items:center; gap:6px; margin-bottom:8px; font-weight:700;}
   </style>
 </head>
 <body>
   <header><h2 class="page-title">Check users on this line</h2></header>
-  <!-- Sign-in card -->
+
+  <!-- Sign‑in card -->
   <div id="signinCard" class="card">
     <div class="row center"><div id="signinBtn"></div></div>
     <div id="accessMsg" class="row muted small-text">Please contact Admin if your ID is not registered!</div>
     <div id="deniedMsg" class="row" style="color:#b91c1c; display:none;">Access denied — Contact admin for allowing your mail ID!</div>
   </div>
+
   <!-- Form card -->
   <div id="formCard" class="card hidden">
     <div class="row muted" id="whoami"></div>
@@ -63,38 +63,40 @@
       <div class="row">
         <select name="windowoption" required>
           <option value="">Select Window</option>
-          <option>Merotra</option>
-          <option>Sunny</option>
+          <option>Merotra</option><option>Sunny</option>
         </select>
       </div>
+
       <!-- Timestamp buttons -->
       <div class="row">
         <button type="button" id="tsBtn1" class="btn primary">पहली बार जोड़ते ही तुरंत क्लिक करें</button>
         <span id="ts1disp" class="timestamp-display"></span>
+        <span id="timer1" class="timer-text hidden"></span>
       </div>
       <div class="row">
-        <button type="button" id="tsBtn2" class="btn primary">दूसरी बार जोड़ते ही तुरंत क्लिक करें</button>
+        <button type="button" id="tsBtn2" class="btn primary disabled" disabled>दूसरी बार जोड़ते ही तुरंत क्लिक करें</button>
         <span id="ts2disp" class="timestamp-display"></span>
+        <span id="timer2" class="timer-text hidden"></span>
       </div>
       <div class="row">
-        <button type="button" id="tsBtn3" class="btn primary">तीसरी बार जोड़ते ही तुरंत क्लिक करें</button>
+        <button type="button" id="tsBtn3" class="btn primary disabled" disabled>तीसरी बार जोड़ते ही तुरंत क्लिक करें</button>
         <span id="ts3disp" class="timestamp-display"></span>
       </div>
+
       <!-- Splitter -->
       <div class="row">
         <select name="splitter" required>
           <option value="">Select Splitter</option>
-          <option>2 way</option>
-          <option>4 way</option>
-          <option>8 way</option>
-          <option>Link JC</option>
+          <option>2 way</option><option>4 way</option><option>8 way</option><option>Link JC</option>
         </select>
       </div>
+
       <!-- Photos -->
       <div class="form-step">ड्रम नंबर और जे सी की फोटो</div>
       <div class="row"><input type="file" name="photo1" accept="image/*" capture="environment" required /></div>
       <div class="form-step">पोल और लोकेशन की फोटो थोड़ी दूर से</div>
       <div class="row"><input type="file" name="photo2" accept="image/*" capture="environment" required /></div>
+
       <!-- JC Name -->
       <div class="row"><input type="text" name="jcname" required placeholder="Enter JC Name" /></div>
       <div class="row">
@@ -111,12 +113,14 @@
       <div class="row"><input type="text" name="linename" placeholder="Line Name (Optional)" /></div>
       <div class="row"><input type="text" name="drumno" placeholder="Drum No (Optional)" /></div>
       <div class="row"><input type="text" name="remark" placeholder="Input power (मापें/नोट्स)" /></div>
+
       <div class="row actions">
         <button type="button" id="submitBtn" class="btn success" disabled>Submit to check users on this line</button>
         <span id="submitStatus" class="muted small-text"></span>
       </div>
     </form>
   </div>
+
   <!-- User list modal -->
   <div id="userListModal" class="modal-overlay">
     <div class="modal-box">
@@ -130,6 +134,7 @@
       </div>
     </div>
   </div>
+
 <script>
 /* ================== CONFIG ================== */
 const allowedEmails = ["shahzebahmad2024@gmail.com","trustindeal.amanwiz@gmail.com","alamshan761@gmail.com","ganeshnigam597@gmail.com","mehrotracablenetwork@gmail.com","sushilyadav8352@gmail.com","ainulkhan424@gmail.com","sushilya9044@gmail.com","sy7903125@gmail.com"];
@@ -138,7 +143,7 @@ const clientID = "599836800018-6df1f03d2l70q5aoncd0s3b99j72je38.apps.googleuserc
 const DISABLE_SECONDS = 6 * 60;
 const TIMER_UPDATE_INTERVAL = 3000;
 let timerInterval = null, timerDisplayInterval = null, timerRemaining = 0;
-let nextTimeout = null;
+let nextTimeout = null, countdownInterval = null;
 const fieldsToSave = ['windowoption','splitter','jcname','wire','vacantcores','wirecolor','linename','drumno','remark'];
 
 /* ========== INIT ========== */
@@ -176,7 +181,7 @@ function handleCredentialResponse(response) {
   const payload = parseJwt(response.credential);
   const email = payload.email || "";
   if (allowedEmails.includes(email)) {
-    localStorage.setItem("userSession", JSON.stringify({ email: email, timestamp: Date.now() }));
+    localStorage.setItem("userSession", JSON.stringify({ email, timestamp: Date.now() }));
     document.querySelector('[name="email"]').value = email;
     document.getElementById("deniedMsg").classList.add("hidden");
     document.getElementById("signinCard").classList.add("hidden");
@@ -257,7 +262,7 @@ async function onSubmitClick() {
       startDisableTimer(DISABLE_SECONDS);
       localStorage.removeItem('ts1'); localStorage.removeItem('ts2'); localStorage.removeItem('ts3');
       document.getElementById('ts1disp').textContent=''; document.getElementById('ts2disp').textContent=''; document.getElementById('ts3disp').textContent='';
-      resetTimestampButtons(); // reset button states
+      resetTimestampButtons();
     } else showToast("" + (resp.message||"Server error"), "error");
   } catch(err) {
     document.querySelector(".spinner-overlay")?.remove();
@@ -265,7 +270,7 @@ async function onSubmitClick() {
   }
 }
 
-/* ===== Timer / disable logic ===== */
+/* ===== Submit disable timer ===== */
 function startDisableTimer(seconds) {
   const submitBtn = document.getElementById('submitBtn');
   submitBtn.disabled = true;
@@ -293,7 +298,28 @@ function updateSubmitTimerDisplay() {
   }
 }
 
-/* ========== Timestamp capture with sequencing & 10-sec delay ========== */
+/* ========== TIMESTAMP SEQUENCE + 10‑SEC COUNTDOWN ========== */
+let countdownSeconds = 0;
+function startCountdown(displayId, nextBtnId) {
+  countdownSeconds = 10;
+  const el = document.getElementById(displayId);
+  el.classList.remove('hidden');
+  el.textContent = `${countdownSeconds}s`;
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    countdownSeconds--;
+    if (countdownSeconds <= 0) {
+      clearInterval(countdownInterval);
+      el.classList.add('hidden');
+      const nextBtn = document.getElementById(nextBtnId);
+      nextBtn.classList.remove('disabled');
+      nextBtn.disabled = false;
+    } else {
+      el.textContent = `${countdownSeconds}s`;
+    }
+  }, 1000);
+}
+
 function captureTimestamp(which) {
   const btn = document.getElementById(`tsBtn${which}`);
   if (btn.classList.contains('disabled')) return;
@@ -310,11 +336,7 @@ function captureTimestamp(which) {
   btn.disabled = true;
 
   if (which === 1) {
-    nextTimeout = setTimeout(() => {
-      const btn2 = document.getElementById('tsBtn2');
-      btn2.classList.remove('disabled');
-      btn2.disabled = false;
-    }, 10000);
+    startCountdown('timer1', 'tsBtn2');
   } else if (which === 2) {
     const btn3 = document.getElementById('tsBtn3');
     btn3.classList.remove('disabled');
@@ -327,11 +349,16 @@ function captureTimestamp(which) {
 /* Reset timestamp button states */
 function resetTimestampButtons() {
   clearTimeout(nextTimeout);
+  clearInterval(countdownInterval);
+  ['timer1','timer2'].forEach(id=>document.getElementById(id).classList.add('hidden'));
   ['1','2','3'].forEach(n => {
     const btn = document.getElementById(`tsBtn${n}`);
     btn.classList.remove('disabled');
     btn.disabled = (n !== '1');
   });
+  // only first button enabled
+  document.getElementById('tsBtn1').classList.remove('disabled');
+  document.getElementById('tsBtn1').disabled = false;
   document.getElementById('submitBtn').disabled = true;
 }
 
@@ -353,28 +380,23 @@ async function loadFormData() {
   fieldsToSave.forEach(field => { const el = document.querySelector(`[name="${field}"]`); if (el && data[field]) el.value = data[field]; });
   await loadPhoto('photo1'); await loadPhoto('photo2');
 
-  // Load timestamps if exist
+  // restore timestamps & button states
   ['1','2','3'].forEach(n => {
     const iso = localStorage.getItem(`ts${n}`);
     if (iso) {
-      const date = new Date(iso);
-      const localDisplay = date.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }).replace(',', '');
-      document.getElementById(`ts${n}disp`).textContent = localDisplay;
+      const d = new Date(iso);
+      const disp = d.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }).replace(',', '');
+      document.getElementById(`ts${n}disp`).textContent = disp;
     }
   });
 
-  // Re-evaluate button states based on saved timestamps
   const has1 = !!localStorage.getItem('ts1');
   const has2 = !!localStorage.getItem('ts2');
   const has3 = !!localStorage.getItem('ts3');
 
   if (has1 && has2 && has3) {
+    ['1','2','3'].forEach(n=>{ const b=document.getElementById(`tsBtn${n}`); b.classList.add('disabled'); b.disabled=true; });
     document.getElementById('submitBtn').disabled = false;
-    ['1','2','3'].forEach(n => {
-      const btn = document.getElementById(`tsBtn${n}`);
-      btn.classList.add('disabled');
-      btn.disabled = true;
-    });
   } else {
     resetTimestampButtons();
     if (has1) {
@@ -385,9 +407,7 @@ async function loadFormData() {
       document.getElementById('tsBtn2').classList.add('disabled'); document.getElementById('tsBtn2').disabled = true;
       document.getElementById('tsBtn3').classList.remove('disabled'); document.getElementById('tsBtn3').disabled = false;
     }
-    if (has3) {
-      document.getElementById('tsBtn3').classList.add('disabled'); document.getElementById('tsBtn3').disabled = true;
-    }
+    if (has3) document.getElementById('tsBtn3').classList.add('disabled'), document.getElementById('tsBtn3').disabled = true;
   }
 }
 async function loadPhoto(name) {
@@ -395,7 +415,8 @@ async function loadPhoto(name) {
   if (!base64) return;
   try {
     const response = await fetch(base64); const blob = await response.blob();
-    const file = new File([blob], `${name}.jpg`, {type:'image/jpeg'}); const input = document.querySelector(`[name="${name}"]`);
+    const file = new File([blob], `${name}.jpg`, {type:'image/jpeg'});
+    const input = document.querySelector(`[name="${name}"]`);
     const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files; input.classList.add('selected');
   } catch(err){ console.error('Failed to load photo:',err); }
 }
@@ -405,19 +426,18 @@ function savePhotoAndHighlight(e) {
   else input.classList.remove('selected');
 }
 
-/* ========== initialize ========== */
+/* ========== INITIALIZE FORM ========== */
 function initializeForm() {
   document.getElementById("whoami").innerHTML = `Check users on this line`;
   loadFormData();
-  fieldsToSave.forEach(field => { const elem = document.querySelector(`[name="${field}"]`); if (elem){ elem.addEventListener('change', saveFormData); elem.addEventListener('input', saveFormData); }});
+  fieldsToSave.forEach(field => { const el = document.querySelector(`[name="${field}"]`); if (el){ el.addEventListener('change', saveFormData); el.addEventListener('input', saveFormData); }});
   autoDetectLocation();
 
-  // Set up timestamp buttons
   document.getElementById('tsBtn1').addEventListener('click', () => captureTimestamp(1));
   document.getElementById('tsBtn2').addEventListener('click', () => captureTimestamp(2));
   document.getElementById('tsBtn3').addEventListener('click', () => captureTimestamp(3));
 
-  resetTimestampButtons(); // initial state: only 1st active
+  resetTimestampButtons();          // initial state
 }
 
 function autoDetectLocation() {
@@ -430,7 +450,7 @@ function autoDetectLocation() {
   }, ()=>{}, { enableHighAccuracy:true, timeout:10000, maximumAge:0 });
 }
 
-/* ========== User List popup & fetching ========== */
+/* ========== USER LIST MODAL ========== */
 function openUserListModal() {
   document.getElementById('userListContainer').innerHTML = '<div class="muted small-text">Fetching user list…</div>';
   document.getElementById('userListModal').style.display = 'flex';
