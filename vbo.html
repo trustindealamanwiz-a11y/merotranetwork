@@ -149,18 +149,35 @@
       </div>
     </div>
   </div>
-
 <script>
 /* ================== CONFIG ================== */
-const allowedEmails = ["shahzebahmad2024@gmail.com","trustindeal.amanwiz@gmail.com","alamshan761@gmail.com","ganeshnigam597@gmail.com","mehrotracablenetwork@gmail.com","sushilyadav8352@gmail.com","ainulkhan424@gmail.com","sushilya9044@gmail.com","sy7903125@gmail.com"];
+/* Now configurable at top as requested:
+   - allowedEmails (list)
+   - API URL (scriptURL)
+   - DISABLE_SECONDS (submit lock)
+   - TS_DELAY (seconds between TS1 click and enabling TS2)
+*/
+const allowedEmails = [
+  "shahzebahmad2024@gmail.com",
+  "trustindeal.amanwiz@gmail.com",
+  "alamshan761@gmail.com",
+  "ganeshnigam597@gmail.com",
+  "mehrotracablenetwork@gmail.com",
+  "sushilyadav8352@gmail.com",
+  "ainulkhan424@gmail.com",
+  "sushilya9044@gmail.com",
+  "sy7903125@gmail.com"
+];
+
 const scriptURL = "https://script.google.com/macros/s/AKfycbyBZtPsTNzsQo5OMNE6yqGmWb12030EzpmxzOXPzNlKrvEOIunkYL-8B6pjWfYtuq9R/exec/exec"; // keep your URL
 const clientID = "599836800018-6df1f03d2l70q5aoncd0s3b99j72je38.apps.googleusercontent.com";
 
-/* ======= CHANGE EASILY =======
-   Disable seconds after submit — update this constant to change wait time.
-   Example: 8 minutes = 8*60 = 480 (seconds)
-*/
-const DISABLE_SECONDS = 6 * 60; // <<-- change here to adjust disable period
+/* Disable seconds after submit — update this constant to change wait time. */
+const DISABLE_SECONDS = 6 * 60; // 6 minutes (unchanged)
+
+/* Timestamp delay between TS1 click and enabling TS2 */
+const TS_DELAY = 10; // seconds — configurable as requested
+
 /* ================================= */
 
 const TIMER_UPDATE_INTERVAL = 3000; // display update every 3s
@@ -183,6 +200,10 @@ window.onload = () => {
   document.querySelector('[name="photo2"]').addEventListener('change', savePhotoAndHighlight);
   const savedSession = JSON.parse(localStorage.getItem("userSession")||null);
   const ONE_HOUR = 60*60*1000;
+
+  // Initialize timestamp buttons as requested (page-load: only TS1 active)
+  initTimestampButtons();
+
   if (savedSession && (Date.now() - savedSession.timestamp < ONE_HOUR)) {
     document.querySelector("input[name='email']").value = savedSession.email;
     document.getElementById("signinCard").classList.add("hidden");
@@ -190,6 +211,18 @@ window.onload = () => {
     initializeForm();
   }
 };
+
+/* ================== TIMESTAMP BUTTON CONTROL ================== */
+function initTimestampButtons() {
+    const btn1 = document.getElementById('tsBtn1');
+    const btn2 = document.getElementById('tsBtn2');
+    const btn3 = document.getElementById('tsBtn3');
+
+    // Page load: only first active
+    btn1.disabled = false;
+    btn2.disabled = true;
+    btn3.disabled = true;
+}
 
 /* ========== GOOGLE SIGN IN HELPERS ========== */
 function parseJwt(token) {
@@ -299,7 +332,7 @@ async function onSubmitClick() {
     showToast("❌ Network error: "+err, "error");
   }
 }
-
+<script>
 /* ===== Timer / disable logic ===== */
 function startDisableTimer(seconds) {
   const submitBtn = document.getElementById('submitBtn');
@@ -329,15 +362,57 @@ function updateSubmitTimerDisplay() {
   }
 }
 
-/* ========== Timestamp capture (local before submit) ========== */
+/* ========== Timestamp capture (LOCAL IST & Button Flow) ========== */
 function captureTimestamp(which) {
+
+  const btn1 = document.getElementById('tsBtn1');
+  const btn2 = document.getElementById('tsBtn2');
+  const btn3 = document.getElementById('tsBtn3');
+
+  // Local IST formatted timestamp
   const now = new Date();
-  const iso = now.toISOString();
+  const iso =
+    now.getFullYear() + "-" +
+    String(now.getMonth()+1).padStart(2,'0') + "-" +
+    String(now.getDate()).padStart(2,'0') + " " +
+    String(now.getHours()).padStart(2,'0') + ":" +
+    String(now.getMinutes()).padStart(2,'0') + ":" +
+    String(now.getSeconds()).padStart(2,'0');
+
   localStorage.setItem('ts'+which, iso);
-  document.getElementById('ts'+which+'disp').textContent = iso.replace('T',' ').split('.')[0];
+  document.getElementById('ts'+which+'disp').textContent = iso;
+
   showToast(`Timestamp ${which} captured`, "info");
-  const t1 = localStorage.getItem('ts1'), t2 = localStorage.getItem('ts2'), t3 = localStorage.getItem('ts3');
-  if (t1 && t2 && t3) document.getElementById('submitBtn').disabled = false;
+
+  /* ------- Button Flow Control (exact as requested) ------- */
+
+  if (which == 1) {
+      // disable TS1 immediately
+      btn1.disabled = true;
+
+      // after TS_DELAY seconds, enable TS2
+      setTimeout(() => {
+          btn2.disabled = false;
+      }, TS_DELAY * 1000);
+  }
+  else if (which == 2) {
+      // disable TS2, enable TS3 immediately
+      btn2.disabled = true;
+      btn3.disabled = false;
+  }
+  else if (which == 3) {
+      // disable TS3 (final)
+      btn3.disabled = true;
+  }
+
+  /* ====== Unlock Submit Button IF all three exist ====== */
+  const t1 = localStorage.getItem('ts1');
+  const t2 = localStorage.getItem('ts2');
+  const t3 = localStorage.getItem('ts3');
+
+  if (t1 && t2 && t3) {
+      document.getElementById('submitBtn').disabled = false;
+  }
 }
 
 /* ========== UI helpers ========== */
