@@ -322,7 +322,7 @@ function startCountdown(displayId, nextBtnId) {
 
 function captureTimestamp(which) {
   const btn = document.getElementById(`tsBtn${which}`);
-  if (btn.classList.contains('disabled')) return;
+  if (btn.classList.contains('disabled') || btn.disabled) return;
 
   const now = new Date();
   const iso = now.toISOString();
@@ -338,9 +338,7 @@ function captureTimestamp(which) {
   if (which === 1) {
     startCountdown('timer1', 'tsBtn2');
   } else if (which === 2) {
-    const btn3 = document.getElementById('tsBtn3');
-    btn3.classList.remove('disabled');
-    btn3.disabled = false;
+    startCountdown('timer2', 'tsBtn3');
   } else if (which === 3) {
     document.getElementById('submitBtn').disabled = false;
   }
@@ -353,12 +351,14 @@ function resetTimestampButtons() {
   ['timer1','timer2'].forEach(id=>document.getElementById(id).classList.add('hidden'));
   ['1','2','3'].forEach(n => {
     const btn = document.getElementById(`tsBtn${n}`);
-    btn.classList.remove('disabled');
-    btn.disabled = (n !== '1');
+    if (n === '1') {
+      btn.classList.remove('disabled');
+      btn.disabled = false;
+    } else {
+      btn.classList.add('disabled');
+      btn.disabled = true;
+    }
   });
-  // only first button enabled
-  document.getElementById('tsBtn1').classList.remove('disabled');
-  document.getElementById('tsBtn1').disabled = false;
   document.getElementById('submitBtn').disabled = true;
 }
 
@@ -395,19 +395,35 @@ async function loadFormData() {
   const has3 = !!localStorage.getItem('ts3');
 
   if (has1 && has2 && has3) {
-    ['1','2','3'].forEach(n=>{ const b=document.getElementById(`tsBtn${n}`); b.classList.add('disabled'); b.disabled=true; });
+    ['1','2','3'].forEach(n=>{
+      const b = document.getElementById(`tsBtn${n}`);
+      b.classList.add('disabled');
+      b.disabled = true;
+    });
     document.getElementById('submitBtn').disabled = false;
   } else {
     resetTimestampButtons();
     if (has1) {
-      document.getElementById('tsBtn1').classList.add('disabled'); document.getElementById('tsBtn1').disabled = true;
-      document.getElementById('tsBtn2').classList.remove('disabled'); document.getElementById('tsBtn2').disabled = false;
+      const b1 = document.getElementById('tsBtn1');
+      b1.classList.add('disabled');
+      b1.disabled = true;
+      const b2 = document.getElementById('tsBtn2');
+      b2.classList.remove('disabled');
+      b2.disabled = false;
     }
     if (has2) {
-      document.getElementById('tsBtn2').classList.add('disabled'); document.getElementById('tsBtn2').disabled = true;
-      document.getElementById('tsBtn3').classList.remove('disabled'); document.getElementById('tsBtn3').disabled = false;
+      const b2 = document.getElementById('tsBtn2');
+      b2.classList.add('disabled');
+      b2.disabled = true;
+      const b3 = document.getElementById('tsBtn3');
+      b3.classList.remove('disabled');
+      b3.disabled = false;
     }
-    if (has3) document.getElementById('tsBtn3').classList.add('disabled'), document.getElementById('tsBtn3').disabled = true;
+    if (has3) {
+      const b3 = document.getElementById('tsBtn3');
+      b3.classList.add('disabled');
+      b3.disabled = true;
+    }
   }
 }
 async function loadPhoto(name) {
