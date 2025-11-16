@@ -505,11 +505,44 @@ async function fetchUserList() {
   }
 }
 function renderUserTable(users) {
-  if (!users.length) { document.getElementById('userListContainer').innerHTML = '<div class="muted small-text">No common users found near the saved timestamps.</div>'; return; }
-  let html = '<table><thead><tr><th>SN</th><th>User name</th><th>Contact</th><th>Area</th><th>Time</th></tr></thead><tbody>';
-  users.forEach((u,idx)=>{ html += `<tr><td>${idx+1}</td><td>${escapeHtml(u.username||'')}</td><td>${escapeHtml(u.contact||'')}</td><td>${escapeHtml(u.area||'')}</td><td>${escapeHtml(u.time||'')}</td></tr>`; });
-  html += '</tbody></table>'; document.getElementById('userListContainer').innerHTML = html;
+  const email = document.querySelector('[name="email"]').value;
+  
+  let html = `<div style="font-size:12px;color:#374151;margin-bottom:8px;">
+                Marked by: <b>${email}</b>
+              </div>`;
+
+  if (!users.length) {
+    document.getElementById('userListContainer').innerHTML =
+      html + '<div class="muted small-text">No users found.</div>';
+    return;
+  }
+
+  html += `<table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+              <tr>
+                <th>Sn</th>
+                <th>User Name</th>
+                <th>Contact</th>
+                <th>Area</th>
+                <th>Power</th>
+              </tr>
+            </thead><tbody>`;
+
+  users.forEach((u, idx) => {
+    html += `<tr>
+               <td>${idx + 1}</td>
+               <td>${escapeHtml(u.username)}</td>
+               <td>${escapeHtml(u.contact)}</td>
+               <td>${escapeHtml(u.area)}</td>
+               <td>${escapeHtml(u.power)}</td>
+             </tr>`;
+  });
+
+  html += "</tbody></table>";
+
+  document.getElementById('userListContainer').innerHTML = html;
 }
+
 function escapeHtml(s){ if(!s) return ''; return s.replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
 </script>
 </body>
