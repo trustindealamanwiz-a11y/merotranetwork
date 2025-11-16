@@ -140,7 +140,7 @@
 const allowedEmails = ["shahzebahmad2024@gmail.com","trustindeal.amanwiz@gmail.com","alamshan761@gmail.com","ganeshnigam597@gmail.com","mehrotracablenetwork@gmail.com","sushilyadav8352@gmail.com","ainulkhan424@gmail.com","sushilya9044@gmail.com","sy7903125@gmail.com"];
 const scriptURL = "https://script.google.com/macros/s/AKfycbyBZtPsTNzsQo5OMNE6yqGmWb12030EzpmxzOXPzNlKrvEOIunkYL-8B6pjWfYtuq9R/exec/exec";
 const clientID = "599836800018-6df1f03d2l70q5aoncd0s3b99j72je38.apps.googleusercontent.com";
-const DISABLE_SECONDS = 6 * 60;
+const DISABLE_SECONDS = 3 * 60;
 const TIMER_UPDATE_INTERVAL = 3000;
 let timerInterval = null, timerDisplayInterval = null, timerRemaining = 0;
 let nextTimeout = null, countdownInterval = null;
@@ -303,7 +303,7 @@ function updateSubmitTimerDisplay() {
 /* ========== TIMESTAMP SEQUENCE + 10‑SEC COUNTDOWN ========== */
 let countdownSeconds = 0;
 function startCountdown(displayId, nextBtnId) {
-  countdownSeconds = 10;
+  countdownSeconds = 25;
   const el = document.getElementById(displayId);
   el.classList.remove('hidden');
   el.textContent = `${countdownSeconds}s`;
