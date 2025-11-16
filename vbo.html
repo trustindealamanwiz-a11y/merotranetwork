@@ -22,32 +22,29 @@
     input[type="file"] {display:block; padding:8px; border-radius:8px; border:2px dashed #aaa; background:#f9f9f9; cursor:pointer; width:100%;}
     .small-text {font-size:12px;}
     .center {justify-content:center;}
-    .actions {display:flex; gap:8px; align-items:center;}
-    .timer-text {font-weight:600; color:#dc2626; min-width:80px;}
-    .spinner-overlay {position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.35); z-index:9999;}
-    .spinner {width:48px; height:48px; border-radius:50%; border:5px solid #f3f4f6; border-top-color:#3b82f6; animation:spin 1s linear infinite;}
-    @keyframes spin {to{transform:rotate(360deg);}}
-    .toast {position:fixed; right:12px; bottom:12px; background:#111827; color:#fff; padding:8px 12px; border-radius:8px; z-index:10001; opacity:0.95;}
-    .toast.success{background:#059669;}.toast.error{background:#dc2626;}.toast.info{background:#0ea5a4;}
+    table {width:100%; border-collapse:collapse; margin-top:8px;}
+    th,td {padding:8px; border:1px solid #e5e7eb; text-align:left; font-size:13px;}
+    th {background:#f3f4f6;}
+    .selected {border-color:#45b08e; background:#e6ffed;}
   </style>
 </head>
-
 <body>
   <header><h2 class="page-title">Check users on this line</h2></header>
 
-  <!-- Sign-in -->
+  <!-- Sign In -->
   <div id="signinCard" class="card">
     <div class="row center"><div id="signinBtn"></div></div>
     <div id="accessMsg" class="row muted small-text">Please contact Admin if your ID is not registered!</div>
     <div id="deniedMsg" class="row" style="color:#b91c1c; display:none;">Access denied — Contact admin for allowing your mail ID!</div>
   </div>
 
-  <!-- Form card -->
+  <!-- Main Form -->
   <div id="formCard" class="card hidden">
     <div class="row muted" id="whoami"></div>
 
     <form id="dataForm" class="form">
       <input type="email" name="email" class="hidden" readonly required />
+      <input type="hidden" name="startTime" />
 
       <div class="row">
         <select name="windowoption" required>
@@ -56,49 +53,55 @@
         </select>
       </div>
 
-      <!-- Timestamp buttons -->
       <div class="row">
-        <button type="button" id="tsBtn1" class="btn primary">पहली बार जोड़ते ही तुरंत क्लिक करें</button>
+        <button type="button" id="tsBtn1" class="btn primary">पहली बार जोड़ते ही तुरंत क्लिक करें</button>
         <span id="ts1disp" class="timestamp-display"></span>
         <span id="timer1" class="timer-text hidden"></span>
       </div>
+
       <div class="row">
-        <button type="button" id="tsBtn2" class="btn primary disabled" disabled>दूसरी बार जोड़ते ही तुरंत क्लिक करें</button>
+        <button type="button" id="tsBtn2" class="btn primary disabled" disabled>दूसरी बार जोड़ते ही तुरंत क्लिक करें</button>
         <span id="ts2disp" class="timestamp-display"></span>
         <span id="timer2" class="timer-text hidden"></span>
       </div>
+
       <div class="row">
-        <button type="button" id="tsBtn3" class="btn primary disabled" disabled>तीसरी बार जोड़ते ही तुरंत क्लिक करें</button>
+        <button type="button" id="tsBtn3" class="btn primary disabled" disabled>तीसरी बार जोड़ते ही तुरंत क्लिक करें</button>
         <span id="ts3disp" class="timestamp-display"></span>
       </div>
 
-      <!-- Splitter -->
       <div class="row">
         <select name="splitter" required>
           <option value="">Select Splitter</option>
-          <option>2 way</option><option>4 way</option><option>8 way</option><option>Link JC</option>
+          <option>2 way</option>
+          <option>4 way</option>
+          <option>8 way</option>
+          <option>Link JC</option>
         </select>
       </div>
 
-      <!-- Photos -->
-      <div class="form-step">ड्रम नंबर और जे सी की फोटो</div>
+      <div class="form-step">ड्रम नंबर और जेसी की फोटो</div>
       <div class="row"><input type="file" name="photo1" accept="image/*" capture="environment" required /></div>
 
-      <div class="form-step">पोल और लोकेशन की फोटो थोड़ी दूर से</div>
+      <div class="form-step">पोल और लोकेशन की फोटो</div>
       <div class="row"><input type="file" name="photo2" accept="image/*" capture="environment" required /></div>
 
-      <!-- Wire & JC -->
       <div class="row"><input type="text" name="jcname" required placeholder="Enter JC Name" /></div>
       <div class="row">
         <select name="wire" required>
-          <option value="">Select Wire</option><option>1 Core</option><option>2 Core</option><option>4 Core</option><option>6 Core</option><option>12 Core</option><option>96 Core</option>
+          <option value="">Select Wire</option>
+          <option>1 Core</option><option>2 Core</option>
+          <option>4 Core</option><option>6 Core</option>
+          <option>12 Core</option><option>96 Core</option>
         </select>
       </div>
+
       <div class="row"><input type="number" name="vacantcores" required placeholder="Enter Vacant Cores" /></div>
 
       <div class="row">
         <select name="wirecolor">
-          <option value="">Select fiber color</option><option>Black</option><option>Orange</option><option>Other</option>
+          <option value="">Select fiber color</option>
+          <option>Black</option><option>Orange</option><option>Other</option>
         </select>
       </div>
 
@@ -108,82 +111,135 @@
 
       <div class="row actions">
         <button type="button" id="submitBtn" class="btn success" disabled>Submit to check users on this line</button>
-        <span id="submitStatus" class="muted small-text"></span>
       </div>
     </form>
   </div>
 
 <script>
-/* ================== CONFIG ================== */
+/* ---------------------------------------------
+   CONFIG
+----------------------------------------------*/
 const allowedEmails = ["shahzebahmad2024@gmail.com","trustindeal.amanwiz@gmail.com","alamshan761@gmail.com","ganeshnigam597@gmail.com","mehrotracablenetwork@gmail.com","sushilyadav8352@gmail.com","ainulkhan424@gmail.com","sushilya9044@gmail.com","sy7903125@gmail.com"];
 const scriptURL = "https://script.google.com/macros/s/AKfycbyBZtPsTNzsQo5OMNE6yqGmWb12030EzpmxzOXPzNlKrvEOIunkYL-8B6pjWfYtuq9R/exec/exec";
-
 const redirectURL = "https://script.google.com/macros/s/AKfycbyU0-_cPkzR8o3NH7g-JiAd1ZgtGUq-kqK2i4LeIt7hEGbvPeP4xt-y41iUhmojtYSKmQ/exec";
 
 const clientID = "599836800018-6df1f03d2l70q5aoncd0s3b99j72je38.apps.googleusercontent.com";
-const DISABLE_SECONDS = 6 * 60;
 
-/* INIT */
+/* ---------------------------------------------
+   LOGIN
+----------------------------------------------*/
 window.onload = () => {
   if (window.google && google.accounts && google.accounts.id) {
-    google.accounts.id.initialize({ client_id: clientID, callback: handleCredentialResponse });
-    google.accounts.id.renderButton(document.getElementById("signinBtn"), { theme:"outline", size:"large", type:"standard", shape:"pill" });
+    google.accounts.id.initialize({
+      client_id: clientID,
+      callback: handleCredentialResponse
+    });
+    google.accounts.id.renderButton(
+      document.getElementById("signinBtn"),
+      { theme: "outline", size: "large", type: "standard", shape: "pill" }
+    );
   }
+
   document.getElementById("submitBtn").addEventListener("click", onSubmitClick);
 };
 
-/* GOOGLE SIGN-IN */
-function parseJwt(token){
-  try{const base64Url=token.split('.')[1];const base64=base64Url.replace(/-/g,'+').replace(/_/g,'/');return JSON.parse(decodeURIComponent(atob(base64).split('').map(c=>'%' + ('00'+c.charCodeAt(0).toString(16)).slice(-2)).join('')));}catch{return{};}
+function parseJwt(token) {
+  const base64Url = token.split('.')[1];
+  const base64 = base64Url.replace(/-/g,'+').replace(/_/g,'/');
+  const jsonPayload = decodeURIComponent(atob(base64).split('')
+    .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+    .join(''));
+  return JSON.parse(jsonPayload);
 }
 
-function handleCredentialResponse(response){
-  const payload=parseJwt(response.credential);
-  const email=payload.email||"";
+function handleCredentialResponse(response) {
+  const payload = parseJwt(response.credential);
+  const email = payload.email || "";
 
-  if(allowedEmails.includes(email)){
-    localStorage.setItem("userSession",JSON.stringify({email,timestamp:Date.now()}));
-    document.querySelector('[name="email"]').value=email;
+  if (allowedEmails.includes(email)) {
+    document.querySelector('[name="email"]').value = email;
     document.getElementById("signinCard").classList.add("hidden");
     document.getElementById("formCard").classList.remove("hidden");
-    initializeForm();
+
   } else {
-    document.getElementById("deniedMsg").style.display="block";
+    document.getElementById("deniedMsg").style.display = "block";
   }
 }
 
-/* SUBMIT HANDLER */
-async function onSubmitClick(){
-  const submitBtn=document.getElementById('submitBtn');
+/* ---------------------------------------------
+   SUBMIT LOGIC
+----------------------------------------------*/
+async function onSubmitClick() {
+  const btn = document.getElementById("submitBtn");
 
-  // ⭐ if mode is show → redirect
-  if(submitBtn.dataset.mode==="show"){
-    window.location.href = redirectURL;
+  /* If button already switched → redirect */
+ if (submitBtn.dataset.mode === 'show') { 
+    window.location.href = "https://script.google.com/macros/s/AKfycbyU0-_cPkzR8o3NH7g-JiAd1ZgtGUq-kqK2i4LeIt7hEGbvPeP4xt-y41iUhmojtYSKmQ/exec";
     return;
   }
 
-  // Normal submit code remains same (not rewritten fully to save your time)
-  showToast("Submitting...", "info");
+  /* Normal submit flow stays SAME */
+  const t1 = localStorage.getItem('ts1');
+  const t2 = localStorage.getItem('ts2');
+  const t3 = localStorage.getItem('ts3');
+
+  if (!t1 || !t2 || !t3) {
+    alert("कृपया तीनों टाइमस्टैम्प पहले कैप्चर करें।");
+    return;
+  }
+
+  const form = document.getElementById('dataForm');
+  const p1 = form.photo1.files[0];
+  const p2 = form.photo2.files[0];
+
+  if (!p1 || !p2) {
+    alert("Photo missing!");
+    return;
+  }
+
+  // ----- Upload section kept same -----
+  const reader1 = await readAsDataURL(p1);
+  const reader2 = await readAsDataURL(p2);
+
+  const payload = {
+    action: "submit",
+    email: form.email.value,
+    jcname: form.jcname.value,
+    splitter: form.splitter.value,
+    wire: form.wire.value,
+    wirecolor: form.wirecolor.value,
+    linename: form.linename.value,
+    drumno: form.drumno.value,
+    remark: form.remark.value,
+    vacantcores: form.vacantcores.value,
+    windowoption: form.windowoption.value,
+    ts1: t1, ts2: t2, ts3: t3,
+    photos: [reader1, reader2]
+  };
+
+  const r = await fetch(scriptURL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload)
+  });
+
+  const resp = await r.json();
+  if (resp.status === "success") {
+    btn.disabled = false;
+    btn.dataset.mode = "show";
+    btn.textContent = "Show user list";
+    alert("Submitted! You can now view users.");
+  } else {
+    alert("Server error: " + resp.message);
+  }
 }
 
-/* RESET & INIT FORM */
-function initializeForm(){
-  document.getElementById("whoami").innerHTML=`Check users on this line`;
-  resetTimestampButtons();
-}
-
-/* RESET TIMESTAMPS */
-function resetTimestampButtons(){
-  document.getElementById('submitBtn').disabled=true;
-}
-
-/* TOAST */
-function showToast(text,type="default"){
-  const toast=document.createElement("div");
-  toast.className=`toast ${type}`;
-  toast.textContent=text;
-  document.body.appendChild(toast);
-  setTimeout(()=>{toast.style.opacity='0';setTimeout(()=>toast.remove(),600);},3000);
+function readAsDataURL(file) {
+  return new Promise(res => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.readAsDataURL(file);
+  });
 }
 </script>
 </body>
