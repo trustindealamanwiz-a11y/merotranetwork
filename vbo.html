@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
+    /* ---------- Basic layout ---------- */
     body {font-family: Arial, Helvetica, sans-serif; margin:16px; background:#f7fafc; color:#111827;}
     .page-title {font-size:20px; margin:0 0 12px 0;}
     .card {background:#fff; padding:12px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.06); max-width:900px; margin-bottom:12px;}
@@ -24,6 +25,7 @@
     .center {justify-content:center;}
     .actions {display:flex; gap:8px; align-items:center;}
     .timer-text {font-weight:600; color:#dc2626; min-width:80px;}
+    /* spinner / toast / modal – unchanged */
     .spinner-overlay {position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.35); z-index:9999;}
     .spinner {width:48px; height:48px; border-radius:50%; border:5px solid #f3f4f6; border-top-color:#3b82f6; animation:spin 1s linear infinite;}
     @keyframes spin {to{transform:rotate(360deg);}}
@@ -45,12 +47,14 @@
 <body>
   <header><h2 class="page-title">Check users on this line</h2></header>
 
+  <!-- Sign‑in card -->
   <div id="signinCard" class="card">
     <div class="row center"><div id="signinBtn"></div></div>
     <div id="accessMsg" class="row muted small-text">Please contact Admin if your ID is not registered!</div>
     <div id="deniedMsg" class="row" style="color:#b91c1c; display:none;">Access denied — Contact admin for allowing your mail ID!</div>
   </div>
 
+  <!-- Form card -->
   <div id="formCard" class="card hidden">
     <div class="row muted" id="whoami"></div>
     <form id="dataForm" class="form">
@@ -59,11 +63,11 @@
       <div class="row">
         <select name="windowoption" required>
           <option value="">Select Window</option>
-          <option value="Merotra">Merotra</option>
-          <option value="Sunny">Sunny</option>
+          <option>Merotra</option><option>Sunny</option>
         </select>
       </div>
 
+      <!-- Timestamp buttons -->
       <div class="row">
         <button type="button" id="tsBtn1" class="btn primary">पहली बार जोड़ते ही तुरंत क्लिक करें</button>
         <span id="ts1disp" class="timestamp-display"></span>
@@ -79,6 +83,7 @@
         <span id="ts3disp" class="timestamp-display"></span>
       </div>
 
+      <!-- Splitter -->
       <div class="row">
         <select name="splitter" required>
           <option value="">Select Splitter</option>
@@ -86,11 +91,13 @@
         </select>
       </div>
 
+      <!-- Photos -->
       <div class="form-step">ड्रम नंबर और जे सी की फोटो</div>
       <div class="row"><input type="file" name="photo1" accept="image/*" capture="environment" required /></div>
       <div class="form-step">पोल और लोकेशन की फोटो थोड़ी दूर से</div>
       <div class="row"><input type="file" name="photo2" accept="image/*" capture="environment" required /></div>
 
+      <!-- JC Name -->
       <div class="row"><input type="text" name="jcname" required placeholder="Enter JC Name" /></div>
       <div class="row">
         <select name="wire" required>
@@ -114,6 +121,7 @@
     </form>
   </div>
 
+  <!-- User list modal -->
   <div id="userListModal" class="modal-overlay">
     <div class="modal-box">
       <div id="userListStatus">
@@ -130,18 +138,13 @@
 <script>
 /* ================== CONFIG ================== */
 const allowedEmails = ["shahzebahmad2024@gmail.com","trustindeal.amanwiz@gmail.com","alamshan761@gmail.com","ganeshnigam597@gmail.com","mehrotracablenetwork@gmail.com","sushilyadav8352@gmail.com","ainulkhan424@gmail.com","sushilya9044@gmail.com","sy7903125@gmail.com"];
+const scriptURL = "https://script.google.com/macros/s/AKfycbyBZtPsTNzsQo5OMNE6yqGmWb12030EzpmxzOXPzNlKrvEOIunkYL-8B6pjWfYtuq9R/exec/exec";
 const clientID = "599836800018-6df1f03d2l70q5aoncd0s3b99j72je38.apps.googleusercontent.com";
 const DISABLE_SECONDS = 6 * 60;
 const TIMER_UPDATE_INTERVAL = 3000;
 let timerInterval = null, timerDisplayInterval = null, timerRemaining = 0;
-let countdownInterval = null;
+let nextTimeout = null, countdownInterval = null;
 const fieldsToSave = ['windowoption','splitter','jcname','wire','vacantcores','wirecolor','linename','drumno','remark'];
-
-// Google Sheet File IDs
-const SHEET_IDS = {
-  Sunny: "1oYRi3wji65zODvUD-P3yL5vtyPUBq35xLws0ihg0O1Y",
-  Merotra: "1oN4d2HCKLcTgogItpVgWUmDTxY28RDhtrVKEMt0PmzA"
-};
 
 /* ========== INIT ========== */
 window.onload = () => {
@@ -222,12 +225,49 @@ async function onSubmitClick() {
 
   const t1 = localStorage.getItem('ts1'), t2 = localStorage.getItem('ts2'), t3 = localStorage.getItem('ts3');
   if (!t1 || !t2 || !t3) { showToast("कृपया तीनों टाइमस्टैम्प पहले कैप्चर करें।", "error"); return; }
+  const form = document.getElementById('dataForm');
+  const p1 = form.photo1.files[0], p2 = form.photo2.files[0];
+  if (!p1 || !p2) { showToast("Both JC Photo and Area Photo are required", "error"); return; }
 
-  showToast("टाइमस्टैम्प सफलतापूर्वक कैप्चर हुए। अब यूजर लिस्ट देखें।", "success");
-  startDisableTimer(DISABLE_SECONDS);
-  localStorage.removeItem('ts1'); localStorage.removeItem('ts2'); localStorage.removeItem('ts3');
-  document.getElementById('ts1disp').textContent=''; document.getElementById('ts2disp').textContent=''; document.getElementById('ts3disp').textContent='';
-  resetTimestampButtons();
+  const overlay = document.createElement("div"); overlay.className="spinner-overlay"; overlay.innerHTML = '<div class="spinner"></div>';
+  document.body.appendChild(overlay);
+  let photos;
+  try { photos = [await compressImageToDataURL(p1,200), await compressImageToDataURL(p2,200)]; }
+  catch(err){ document.querySelector(".spinner-overlay")?.remove(); showToast("Image processing failed: "+err.message, "error"); return; }
+
+  const payload = {
+    action: "submit",
+    email: form.email.value,
+    locationLink: form.locationLink ? form.locationLink.value : "",
+    photos,
+    jcname: form.jcname.value,
+    splitter: form.splitter.value,
+    wire: form.wire.value,
+    wirecolor: form.wirecolor.value,
+    linename: form.linename.value,
+    drumno: form.drumno.value,
+    remark: form.remark.value,
+    vacantcores: form.vacantcores.value,
+    windowoption: form.windowoption.value,
+    ts1: localStorage.getItem('ts1') || "",
+    ts2: localStorage.getItem('ts2') || "",
+    ts3: localStorage.getItem('ts3') || ""
+  };
+  try {
+    const r = await fetch(scriptURL, { method: "POST", headers: { "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+    const resp = await r.json();
+    document.querySelector(".spinner-overlay")?.remove();
+    if (resp.status === "success") {
+      showToast("Data submitted. You can view user list after the wait period.", "success");
+      startDisableTimer(DISABLE_SECONDS);
+      localStorage.removeItem('ts1'); localStorage.removeItem('ts2'); localStorage.removeItem('ts3');
+      document.getElementById('ts1disp').textContent=''; document.getElementById('ts2disp').textContent=''; document.getElementById('ts3disp').textContent='';
+      resetTimestampButtons();
+    } else showToast("" + (resp.message||"Server error"), "error");
+  } catch(err) {
+    document.querySelector(".spinner-overlay")?.remove();
+    showToast("Network error: "+err, "error");
+  }
 }
 
 /* ===== Submit disable timer ===== */
@@ -304,7 +344,9 @@ function captureTimestamp(which) {
   }
 }
 
+/* Reset timestamp button states */
 function resetTimestampButtons() {
+  clearTimeout(nextTimeout);
   clearInterval(countdownInterval);
   ['timer1','timer2'].forEach(id=>document.getElementById(id).classList.add('hidden'));
   ['1','2','3'].forEach(n => {
@@ -320,91 +362,12 @@ function resetTimestampButtons() {
   document.getElementById('submitBtn').disabled = true;
 }
 
-/* ========== FETCH USER LIST FROM GOOGLE SHEETS - FIXED ========== */
-async function fetchUserList() {
-  const dot = document.getElementById('statusDot'), text = document.getElementById('statusText');
-  dot.textContent = "O"; dot.classList.add("blink"); text.textContent = "Fetching user list…";
-
-  const windowoption = document.querySelector('[name="windowoption"]').value;
-  const email = document.querySelector('[name="email"]').value;
-
-  if (!windowoption) {
-    dot.classList.remove("blink"); dot.textContent = "R"; text.textContent = "Select window";
-    document.getElementById('userListContainer').innerHTML = '<div class="muted small-text">Please select window first.</div>';
-    return;
-  }
-
-  const sheetId = SHEET_IDS[windowoption];
-  if (!sheetId) {
-    dot.classList.remove("blink"); dot.textContent = "R"; text.textContent = "Invalid window";
-    return;
-  }
-
-  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=TheMaster`;
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const textData = await response.text();
-
-    // Parse gviz JSON safely
-    let jsonData;
-    try {
-      const jsonText = textData.replace(/.*google.visualization.Query.setResponse\(/s, '').slice(0, -2);
-      jsonData = JSON.parse(jsonText);
-    } catch (e) {
-      throw new Error("Failed to parse sheet data");
-    }
-
-    const rows = jsonData.table?.rows || [];
-    const users = [];
-    const userPart = email.toLowerCase().split('@')[0];
-
-    for (const row of rows) {
-      const cols = row.c || [];
-      // Safe access to column N (index 13), P(15), Q(16), S(18)
-      const usernameCell = cols[13];
-      const username = (typeof usernameCell?.v === 'string') ? usernameCell.v.trim() : "";
-      
-      if (username && username.toLowerCase().includes(userPart)) {
-        const contact = (typeof cols[15]?.v === 'string') ? cols[15].v : "";
-        const area = (typeof cols[16]?.v === 'string') ? cols[16].v : "";
-        const power = (typeof cols[18]?.v === 'string') ? cols[18].v : "";
-        users.push({ username, contact, area, power });
-      }
-    }
-
-    dot.classList.remove("blink");
-    if (users.length === 0) {
-      dot.textContent = "Y"; text.textContent = "No users found";
-      document.getElementById('userListContainer').innerHTML = '<div style="margin-top:12px;color:#b91c1c;font-weight:bold;">VBO could not find any user on this line!</div>';
-    } else {
-      dot.textContent = "G"; text.textContent = "User list loaded";
-      renderUserTable(users);
-    }
-  } catch (err) {
-    dot.classList.remove("blink"); dot.textContent = "P"; text.textContent = "Network error";
-    document.getElementById('userListContainer').innerHTML = `<div class="muted small-text">Error: ${escapeHtml(err.message)}</div>`;
-  }
-}
-
-function renderUserTable(users) {
-  let html = `<table><thead><tr><th>SN</th><th>User name</th><th>Contact</th><th>Area</th><th>Power</th></tr></thead><tbody>`;
-  users.forEach((u, idx) => {
-    html += `<tr><td>${idx + 1}</td><td>${escapeHtml(u.username)}</td><td>${escapeHtml(u.contact)}</td><td>${escapeHtml(u.area)}</td><td>${escapeHtml(u.power)}</td></tr>`;
-  });
-  html += `</tbody></table>`;
-  document.getElementById('userListContainer').innerHTML = html;
-}
-
 /* ========== UI helpers ========== */
 function showToast(text, type="default") {
   const toast = document.createElement("div"); toast.className = `toast ${type}`; toast.textContent = text;
   document.body.appendChild(toast);
   setTimeout(()=>{ toast.style.opacity='0'; setTimeout(()=>toast.remove(),600); },3000);
 }
-
-function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
 
 /* ========== Local form save/load ========== */
 function saveFormData() {
@@ -417,6 +380,7 @@ async function loadFormData() {
   fieldsToSave.forEach(field => { const el = document.querySelector(`[name="${field}"]`); if (el && data[field]) el.value = data[field]; });
   await loadPhoto('photo1'); await loadPhoto('photo2');
 
+  // restore timestamps & button states
   ['1','2','3'].forEach(n => {
     const iso = localStorage.getItem(`ts${n}`);
     if (iso) {
@@ -431,19 +395,35 @@ async function loadFormData() {
   const has3 = !!localStorage.getItem('ts3');
 
   if (has1 && has2 && has3) {
-    ['1','2','3'].forEach(n=>{ const b=document.getElementById(`tsBtn${n}`); b.classList.add('disabled'); b.disabled=true; });
+    ['1','2','3'].forEach(n=>{
+      const b = document.getElementById(`tsBtn${n}`);
+      b.classList.add('disabled');
+      b.disabled = true;
+    });
     document.getElementById('submitBtn').disabled = false;
   } else {
     resetTimestampButtons();
     if (has1) {
-      document.getElementById('tsBtn1').classList.add('disabled'); document.getElementById('tsBtn1').disabled = true;
-      document.getElementById('tsBtn2').classList.remove('disabled'); document.getElementById('tsBtn2').disabled = false;
+      const b1 = document.getElementById('tsBtn1');
+      b1.classList.add('disabled');
+      b1.disabled = true;
+      const b2 = document.getElementById('tsBtn2');
+      b2.classList.remove('disabled');
+      b2.disabled = false;
     }
     if (has2) {
-      document.getElementById('tsBtn2').classList.add('disabled'); document.getElementById('tsBtn2').disabled = true;
-      document.getElementById('tsBtn3').classList.remove('disabled'); document.getElementById('tsBtn3').disabled = false;
+      const b2 = document.getElementById('tsBtn2');
+      b2.classList.add('disabled');
+      b2.disabled = true;
+      const b3 = document.getElementById('tsBtn3');
+      b3.classList.remove('disabled');
+      b3.disabled = false;
     }
-    if (has3) document.getElementById('tsBtn3').classList.add('disabled'), document.getElementById('tsBtn3').disabled = true;
+    if (has3) {
+      const b3 = document.getElementById('tsBtn3');
+      b3.classList.add('disabled');
+      b3.disabled = true;
+    }
   }
 }
 async function loadPhoto(name) {
@@ -473,7 +453,7 @@ function initializeForm() {
   document.getElementById('tsBtn2').addEventListener('click', () => captureTimestamp(2));
   document.getElementById('tsBtn3').addEventListener('click', () => captureTimestamp(3));
 
-  resetTimestampButtons();
+  resetTimestampButtons();          // initial state
 }
 
 function autoDetectLocation() {
@@ -493,6 +473,44 @@ function openUserListModal() {
   fetchUserList();
 }
 function closeUserListModal() { document.getElementById('userListModal').style.display = 'none'; }
+async function fetchUserList() {
+  const dot = document.getElementById('statusDot'), text = document.getElementById('statusText');
+  dot.textContent = "O"; dot.classList.add("blink"); text.textContent = "Fetching user list…";
+  const email = document.querySelector('[name="email"]').value;
+  const windowoption = document.querySelector('[name="windowoption"]').value;
+  if (!windowoption) {
+    dot.classList.remove("blink"); dot.textContent = "R"; text.textContent = "Select window";
+    document.getElementById('userListContainer').innerHTML = '<div class="muted small-text">Please select window first.</div>';
+    return;
+  }
+  const payload = { action:'get_users', windowoption, email };
+  try {
+    const r = await fetch(scriptURL, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(payload) });
+    const resp = await r.json();
+    dot.classList.remove("blink");
+    if (resp.status === 'success' && Array.isArray(resp.users) && resp.users.length === 0) {
+      dot.textContent = "Y"; text.textContent = "No users found";
+      document.getElementById('userListContainer').innerHTML = '<div style="margin-top:12px;color:#b91c1c;font-weight:bold;">VBO could not find any user on this line !</div>';
+      return;
+    }
+    if (resp.status === "success" && Array.isArray(resp.users)) {
+      dot.textContent = "G"; text.textContent = "User list loaded";
+      renderUserTable(resp.users); return;
+    }
+    dot.textContent = "R"; text.textContent = "Server message";
+    document.getElementById('userListContainer').innerHTML = `<div class="muted small-text">${resp.message || 'Unknown server message'}</div>`;
+  } catch(err) {
+    dot.classList.remove("blink"); dot.textContent = "P"; text.textContent = "Network error";
+    document.getElementById('userListContainer').innerHTML = `<div class="muted small-text">Network error: ${err}</div>`;
+  }
+}
+function renderUserTable(users) {
+  if (!users.length) { document.getElementById('userListContainer').innerHTML = '<div class="muted small-text">No common users found near the saved timestamps.</div>'; return; }
+  let html = '<table><thead><tr><th>SN</th><th>User name</th><th>Contact</th><th>Area</th><th>Time</th></tr></thead><tbody>';
+  users.forEach((u,idx)=>{ html += `<tr><td>${idx+1}</td><td>${escapeHtml(u.username||'')}</td><td>${escapeHtml(u.contact||'')}</td><td>${escapeHtml(u.area||'')}</td><td>${escapeHtml(u.time||'')}</td></tr>`; });
+  html += '</tbody></table>'; document.getElementById('userListContainer').innerHTML = html;
+}
+function escapeHtml(s){ if(!s) return ''; return s.replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
 </script>
 </body>
 </html>
